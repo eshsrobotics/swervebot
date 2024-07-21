@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.filter.SlewRateLimiter;
+
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
  * constants. This class should not be used for any other purpose. All constants should be declared
@@ -15,5 +17,14 @@ package frc.robot;
 public final class Constants {
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
+
+    /**
+     * Dead zone for the joystick -- or, better to say, for the
+     * {@link SlewRateLimiter} that we associate with each joystick.
+     *
+     * Any joystick inputs with absolute values less than this will be treated
+     * as if they are 0.
+     */
+    public static final double JOYSTICK_DEAD_ZONE = 0.02;
   }
 }
