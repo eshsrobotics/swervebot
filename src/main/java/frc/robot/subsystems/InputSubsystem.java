@@ -187,44 +187,42 @@ public class InputSubsystem extends SubsystemBase {
      *         assign it.
      */
     private boolean assignJoystick(Joystick j) {
-        boolean success = false;
-        final String prefix = "controllerCheck";
-
-        final String mainJoystickString = mainJoystick == null ? "Main joystick is missing" :
-            !mainJoystick.isConnected() ? "Main joystick on port %d was disconnected".formatted(mainJoystick.getPort()) :
-            "Main joystick is connected on port %d".formatted(mainJoystick.getPort());
-
-        final String secondaryJoystickString = secondaryJoystick == null ? "secondary joystick is missing" :
-            !secondaryJoystick.isConnected() ? "secondary joystick on port %d was disconnected".formatted(secondaryJoystick.getPort()) :
-            "secondary joystick is connected on port %d".formatted(secondaryJoystick.getPort());
-
+        boolean success = true;
         String message = "";
 
         if (mainJoystick == null || !mainJoystick.isConnected()) {
+
             if (secondaryJoystick == null || !secondaryJoystick.isConnected()) {
                 mainJoystick = j;
                 message = "assigning new joystick on port %d to main.\n".formatted(j.getPort());
-                success = true;
             } else {
                 mainJoystick = secondaryJoystick;
                 secondaryJoystick = j;
                 message = "assigning secondary to the main joystick and assigning new joystick on port %d to the secondary.\n".formatted(j.getPort());
-                success = true;
             }
-
         } else { // Main joystick is connected.
 
             if (secondaryJoystick == null || !secondaryJoystick.isConnected()) {
                 secondaryJoystick = j;
                 message = "assigning new joystick on port %d to secondary.\n".formatted(j.getPort());
-                success = true;
             } else {
                 // Already have two working joysticks, so 3rd joystick does nothing.
                 // Not even worth logging.
+                success = false;
             }
         }
 
         if (success) {
+            final String prefix = "controllerCheck";
+
+            final String mainJoystickString = mainJoystick == null ? "Main joystick is missing" :
+                !mainJoystick.isConnected() ? "Main joystick on port %d was disconnected".formatted(mainJoystick.getPort()) :
+                "Main joystick is connected on port %d".formatted(mainJoystick.getPort());
+
+            final String secondaryJoystickString = secondaryJoystick == null ? "secondary joystick is missing" :
+                !secondaryJoystick.isConnected() ? "secondary joystick on port %d was disconnected".formatted(secondaryJoystick.getPort()) :
+                "secondary joystick is connected on port %d".formatted(secondaryJoystick.getPort());
+
             System.out.printf("%s: %s and %s; %s.\n", prefix, mainJoystickString, secondaryJoystickString, message);
         }
         return success;
@@ -234,6 +232,4 @@ public class InputSubsystem extends SubsystemBase {
     // periodic, and we need to combine the xbox controller, the main joystick,
     // and the secondary joystick into the 3 degrees of freedom: forward-back,
     // left-right, and turn.
-
-
 }
