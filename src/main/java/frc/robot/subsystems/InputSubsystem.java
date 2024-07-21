@@ -11,8 +11,8 @@ import frc.robot.Constants;
 /**
  * Reads user input continuously from a side variety of human interface devices
  * (including, eventually, keyboard input).  The directional inputs are exposed
- * through the three channel querying methods {@link #getForwardBackChannel()},
- * {@link #getLeftRightChannel()}, and {@link #getTurnChannel()}, while any
+ * through the three channel querying methods {@link #getForwardBack()},
+ * {@link #getLeftRight()}, and {@link #getTurn()}, while any
  * remaining buttons or sliders are exposed through their own methods.
  *
  */
@@ -23,7 +23,8 @@ public class InputSubsystem extends SubsystemBase {
     private final SlewRateLimiter m_yspeedLimiter = new SlewRateLimiter(3);
     private final SlewRateLimiter m_rotLimiter = new SlewRateLimiter(3);
     private XboxController xboxController;
-    private Joystick joystick;
+    private Joystick mainJoystick;
+    private Joystick secondaryJoystick;
 
     /**
      * How often should we look for new human input devices?
@@ -34,56 +35,10 @@ public class InputSubsystem extends SubsystemBase {
 
     public InputSubsystem() {
         xboxController = null;
-        joystick = null;
+        mainJoystick = null;
+        secondaryJoystick = null;
         lastCheckTimeSeconds = Timer.getFPGATimestamp() - JOYSTICK_POLLING_INTERVAL_SECONDS; // Force initial check
     }
-
-    /**
-     * Checks to see if any controllers have been plugged in, and if so, where.
-     * To avoid overwhelming the system with exceptions, callers of this
-     * function should only do so occasionally.
-     */
-    private void discoverControllers() {
-        final int PORTS_TO_SCAN = 4;
-
-        for (int i = 0; i < PORTS_TO_SCAN; ++i) {
-            try {
-                if (xboxController == null) {
-                    xboxController = new XboxController(i);
-                    // Success!
-                    System.out.printf("discoverControllers(): Found XBox Controller on port %d\n", i);
-                    continue;
-                } else {
-                    // Is the XBox controller still reachable?
-                    if (!xboxController.isConnected()) {
-                        System.out.printf("discoverControllers(): XBox Controller was disconnected!\n", i);
-                        xboxController = null;
-                    }
-                }
-            } catch (Exception e) {
-                // Couldn't initialize an XBox Controller at this port.
-                // Not even worth logging.
-            }
-
-            try {
-                if (joystick != null) {
-                    joystick = new Joystick(i);
-                    // Success!
-                    System.out.printf("discoverControllers(): Found Joystick on port %d\n", i);
-                    continue;
-                } else {
-                    // Is the joystick still reachable?
-                    if (!joystick.isConnected()) {
-                        System.out.printf("discoverControllers(): Joystick was disconnected!\n", i);
-                        joystick = null;
-                    }
-                }
-            } catch (Exception e) { }
-
-            // TODO: Add NetworkTables support.
-        }
-    }
-
 
     @Override
     public String getName() {
@@ -109,18 +64,22 @@ public class InputSubsystem extends SubsystemBase {
      *
      * <ul>
      *   <li>On the Xbox controller, this is the left joystick's horizontal channel.</li>
-     *   <li>On gaming joysticks, this is the horizontal channel.</li>
+     *   <li>For one-joystick setups, this is the horizontal channel.</li>
+     *   <li>For two-joystick setups, this is the horizontal channel of the
+     *   primary (first) joystick.</li>
      *   <li>For keyboard input, this is controlled by the A and D keys.</li>
      * </ul>
      */
-    public double getLeftRightChannel() {
+    public double getLeftRight() {
         double xboxLeftRight = (xboxController != null && xboxController.isConnected() ? xboxController.getLeftX() : 0);
-        double joystickLeftRight = (joystick != null && joystick.isConnected() ? joystick.getX() : 0);
+        double joystickLeftRight = (mainJoystick != null && mainJoystick.isConnected() ? mainJoystick.getX() : 0);
 
         // If all devices are plugged in, then they'll all contribute so long as
         // a human is touching them.  This allows for pair driving.
         double leftRight = MathUtil.applyDeadband(xboxLeftRight, Constants.OperatorConstants.JOYSTICK_DEAD_ZONE) +
                            MathUtil.applyDeadband(joystickLeftRight, Constants.OperatorConstants.JOYSTICK_DEAD_ZONE);
+
+        leftRight = MathUtil.clamp(leftRight, -1.0, 1.0);
 
         return m_xspeedLimiter.calculate(leftRight);
     }
@@ -132,17 +91,20 @@ public class InputSubsystem extends SubsystemBase {
      *
      * <ul>
      *   <li>On the Xbox controller, this is the left joystick's vertical channel.</li>
-     *   <li>On gaming joysticks, this is the vertical channel.</li>
+     *   <li>For one-joystick setups, this is the vertical channel.</li>
+     *   <li>For two-joystick setups, this is the vertical channel of the
+     *   primary (first) joystick.</li>
      *   <li>For keyboard input, this is controlled by the W and S keys.</li>
      * </ul>
-
      */
-    public double getForwardBackChannel() {
+    public double getForwardBack() {
         double xboxForwardBack = (xboxController != null && xboxController.isConnected() ? xboxController.getLeftY() : 0);
-        double joystickForwardBack = (joystick != null && joystick.isConnected() ? joystick.getY() : 0);
+        double joystickForwardBack = (mainJoystick != null && mainJoystick.isConnected() ? mainJoystick.getY() : 0);
 
         double forwardBack = MathUtil.applyDeadband(xboxForwardBack, Constants.OperatorConstants.JOYSTICK_DEAD_ZONE) +
                              MathUtil.applyDeadband(joystickForwardBack, Constants.OperatorConstants.JOYSTICK_DEAD_ZONE);
+
+        forwardBack = MathUtil.clamp(forwardBack, -1.0, 1.0);
 
         return m_yspeedLimiter.calculate(forwardBack);
     }
@@ -154,18 +116,124 @@ public class InputSubsystem extends SubsystemBase {
      *
      * <ul>
      *   <li>On the Xbox controller, this is the right joystick's horizontal channel.</li>
-     *   <li>On gaming joysticks, this is the so-called "Z" channel (produced by twisting the joystick.)</li>
+     *   <li>For one-joystick setups, this is the so-called "Z" channel
+     *   (produced by twisting the joystick.)</li>
+     *   <li>For two-joystick setups, this is the horizontal channel of the
+     *   secondary joystick.</li>
      *   <li>For keyboard input, this is controlled by the LEFT and RIGHT keys.</li>
      * </ul>
-
      */
-    public double getTurnChannel() {
+    public double getTurn() {
         double xboxTurn = (xboxController != null && xboxController.isConnected() ? xboxController.getRightX() : 0);
-        double joystickTurn = (joystick != null && joystick.isConnected() ? joystick.getZ() : 0);
+        double joystickTurn = (secondaryJoystick != null && secondaryJoystick.isConnected() ? secondaryJoystick.getX() :
+                               (mainJoystick != null && mainJoystick.isConnected() ? mainJoystick.getZ() : 0));
 
         double turn = MathUtil.applyDeadband(xboxTurn, Constants.OperatorConstants.JOYSTICK_DEAD_ZONE) +
                       MathUtil.applyDeadband(joystickTurn, Constants.OperatorConstants.JOYSTICK_DEAD_ZONE);
 
+        turn = MathUtil.clamp(turn, -1.0, 1.0);
+
         return m_rotLimiter.calculate(turn);
     }
+
+    /**
+     * A function called every few seconds meant to detect when xbox controllers
+     * or joysticks are connected or disconnected, and updates dynamically.
+     *
+     * <p>To avoid overwhelming the system with exceptions, callers of this
+     * function should only do so occasionally.</p>
+     */
+    private void controllerCheck() {
+        final int MAX_PORTS_TO_CHECK = 4;
+        for (int i = 0; i < MAX_PORTS_TO_CHECK; i++) {
+
+            try {
+                if (xboxController == null) {
+                    xboxController = new XboxController(i);
+                    System.out.printf("controllerCheck: Found xbox controller on port %d.\n", i);
+                    continue;
+                } else if (!xboxController.isConnected()) {
+                    xboxController = null;
+                    System.out.printf("controllerCheck: Xbox controller is disconnected.\n");
+                    continue;
+                }
+            } catch (Exception e) {
+                // Xbox controller is not connected on port i, not a big deal.
+            }
+
+            // We want to be able to support both 1- and 2-joystick scenarios.
+            try {
+                Joystick j = new Joystick(i);
+                if (assignJoystick(j)) {
+                    continue;
+                }
+            } catch (Exception e) {
+                // No joystick at port i, not a big deal.
+            }
+
+            // TODO: Add NetworkTables support.
+        }
+    }
+
+    /**
+     * Helper function for {@link #controllerCheck()}.  When a new joystick
+     * "comes online", this function determines where to assign the new
+     * joystick (if assigning is needed at all.)
+     *
+     * @param j a {@link Joystick} that has just been successfully
+     *          constructed.
+     * @return Returns true if the joystick was successfully assigned to the
+     *         main or secondary joystick and false if there was no need to
+     *         assign it.
+     */
+    private boolean assignJoystick(Joystick j) {
+        boolean success = false;
+        final String prefix = "controllerCheck";
+
+        final String mainJoystickString = mainJoystick == null ? "Main joystick is missing" :
+            !mainJoystick.isConnected() ? "Main joystick on port %d was disconnected".formatted(mainJoystick.getPort()) :
+            "Main joystick is connected on port %d".formatted(mainJoystick.getPort());
+
+        final String secondaryJoystickString = secondaryJoystick == null ? "secondary joystick is missing" :
+            !secondaryJoystick.isConnected() ? "secondary joystick on port %d was disconnected".formatted(secondaryJoystick.getPort()) :
+            "secondary joystick is connected on port %d".formatted(secondaryJoystick.getPort());
+
+        String message = "";
+
+        if (mainJoystick == null || !mainJoystick.isConnected()) {
+            if (secondaryJoystick == null || !secondaryJoystick.isConnected()) {
+                mainJoystick = j;
+                message = "assigning new joystick on port %d to main.\n".formatted(j.getPort());
+                success = true;
+            } else {
+                mainJoystick = secondaryJoystick;
+                secondaryJoystick = j;
+                message = "assigning secondary to the main joystick and assigning new joystick on port %d to the secondary.\n".formatted(j.getPort());
+                success = true;
+            }
+
+        } else { // Main joystick is connected.
+
+            if (secondaryJoystick == null || !secondaryJoystick.isConnected()) {
+                secondaryJoystick = j;
+                message = "assigning new joystick on port %d to secondary.\n".formatted(j.getPort());
+                success = true;
+            } else {
+                // Already have two working joysticks, so 3rd joystick does nothing.
+                // Not even worth logging.
+            }
+        }
+
+        if (success) {
+            System.out.printf("%s: %s and %s; %s.\n", prefix, mainJoystickString, secondaryJoystickString, message);
+        }
+        return success;
+    }
+
+    // TODO We need to call the controller check every few seconds during
+    // periodic, and we need to combine the xbox controller, the main joystick,
+    // and the secondary joystick into the 3 degrees of freedom: forward-back,
+    // left-right, and turn.
+
+
 }
