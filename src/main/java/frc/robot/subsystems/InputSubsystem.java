@@ -52,7 +52,7 @@ public class InputSubsystem extends SubsystemBase {
         // Check to see if anything new was plugged in (or removed.)
         double currentTimeSeconds = Timer.getFPGATimestamp();
         if (currentTimeSeconds - lastCheckTimeSeconds >= JOYSTICK_POLLING_INTERVAL_SECONDS) {
-            discoverControllers();
+            controllerCheck();
             lastCheckTimeSeconds = currentTimeSeconds;
         }
     }
