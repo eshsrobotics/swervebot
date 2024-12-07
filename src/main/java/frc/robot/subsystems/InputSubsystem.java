@@ -221,8 +221,6 @@ public class InputSubsystem extends SubsystemBase {
                     // No joystick at port i, not a big deal.
                 }
             }
-
-
             // TODO: Add NetworkTables support.
         }
     }
@@ -258,9 +256,9 @@ public class InputSubsystem extends SubsystemBase {
         boolean success = true;
         String message = "";
 
-        if (mainJoystick == null || !mainJoystick.isConnected()) {
+        if (!mainJoystickFound()) {
 
-            if (secondaryJoystick == null || !secondaryJoystick.isConnected()) {
+            if (!secondaryJoystickFound()) {
                 mainJoystick = j;
                 message = "assigned new joystick on port %d to main.\n".formatted(j.getPort());
             } else {
@@ -270,7 +268,7 @@ public class InputSubsystem extends SubsystemBase {
             }
         } else { // Main joystick is connected.
 
-            if (secondaryJoystick == null || !secondaryJoystick.isConnected()) {
+            if (!secondaryJoystickFound()) {
                 secondaryJoystick = j;
                 message = "assigned new joystick on port %d to secondary.\n".formatted(j.getPort());
             } else {

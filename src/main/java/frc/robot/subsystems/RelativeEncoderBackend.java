@@ -2,6 +2,13 @@ package frc.robot.subsystems;
 
 import com.revrobotics.RelativeEncoder;
 
+/**
+ * An implementation of swerve modules similar to the 2020 code.
+ * <ul>
+ *  <li>Both drive and pivot motors will use the {@link RelativeEncoder}</li>
+ *  <li> We will use as much of the 2020 robot code as possible for expedience.
+ *
+ */
 public class RelativeEncoderBackend implements SwerveModuleBackend {
 
     private RelativeEncoder pivotEncoder, driveEncoder;
@@ -55,6 +62,12 @@ public class RelativeEncoderBackend implements SwerveModuleBackend {
     public double getPivotAngleInDegrees() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'getPivotAngleInDegrees'");
+    }
+
+    @Override
+    public void setPivotAngleInDegrees(double PivotAngleInDegrees) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setPivotAngleInDegrees'");
     }
 
 }

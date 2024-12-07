@@ -38,4 +38,12 @@ public interface SwerveModuleBackend {
      * @return returns an angle in degrees
      */
     double getPivotAngleInDegrees();
+
+    /**
+     * Sets angles for the swerve module pivot motor.
+     * @param PivotAngleInDegrees The angle you want the swerve module to be.
+     *                            The function will perform modulus operations
+     *                            if necessary.
+     */
+    void setPivotAngleInDegrees(double PivotAngleInDegrees);
 };
