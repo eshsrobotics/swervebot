@@ -27,4 +27,14 @@ public final class Constants {
      */
     public static final double JOYSTICK_DEAD_ZONE = 0.02;
   }
+
+  public static class DriveConstants {
+    /**
+     * The radius of your swerve wheels.  Used in calculations to determine
+     * velocity of each module in meters per second.
+     *
+     * <p>TODO: Measure the real value for this number,</p>
+     */
+    public static final double SWERVE_MODULE_WHEEL_RADIUS_METERS = 1.0;
+  }
 }
