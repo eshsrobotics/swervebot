@@ -35,6 +35,6 @@ public final class Constants {
      *
      * <p>TODO: Measure the real value for this number,</p>
      */
-    public static final double SWERVE_MODULE_WHEEL_RADIUS_METERS = 1.0;
+    public static final double SWERVE_MODULE_WHEEL_RADIUS_METERS = 0.0508;
   }
 }
