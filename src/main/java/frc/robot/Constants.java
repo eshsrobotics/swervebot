@@ -5,6 +5,7 @@
 package frc.robot;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.geometry.Translation2d;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -36,5 +37,23 @@ public final class Constants {
      * <p>TODO: Measure the real value for this number,</p>
      */
     public static final double SWERVE_MODULE_WHEEL_RADIUS_METERS = 0.0508;
+
+    /**
+     * The maximum speed driving speed of the robot in meters per second. (needs testing)
+     */
+    public static final double SWERVE_DRIVE_MAX_DRIVING_SPEED = 0.5;
+
+    /**
+     * The maximum turning speed of the robot in radians per second. (needs testing)
+     */
+    public static final double SWERVE_DRIVE_MAX_TURNING_SPEED = 0.4;
+
+    /**
+     * The positions of the wheels on the Chassis measured in meters. (needs testing)
+     */
+    public static final Translation2d SWERVE_MODULE_POSITION_FRONT_RIGHT = new Translation2d(0.3, 0.3); 
+    public static final Translation2d SWERVE_MODULE_POSITION_FRONT_LEFT = new Translation2d(0.3, -0.3); 
+    public static final Translation2d SWERVE_MODULE_POSITION_BACK_RIGHT = new Translation2d(-0.3, 0.3); 
+    public static final Translation2d SWERVE_MODULE_POSITION_BACK_LEFT = new Translation2d(-0.3, -0.3); 
   }
 }
