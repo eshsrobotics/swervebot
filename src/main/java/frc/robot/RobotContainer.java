@@ -6,6 +6,7 @@ package frc.robot;
 
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.Constants.DriveConstants.DriveType;
 import frc.robot.commands.Autos;
 import frc.robot.commands.ExampleCommand;
 import frc.robot.subsystems.DriveSubsystem;
@@ -14,6 +15,7 @@ import frc.robot.subsystems.InputSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Constants.*;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -28,8 +30,7 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
   private final InputSubsystem m_inputSubsystem = new InputSubsystem();
-  private final DriveSubsystem m_driveSubsystem = new DriveSubsystem(m_inputSubsystem,
-      DriveConstants.SWERVE_DRIVE_MAX_DRIVING_SPEED, DriveConstants.SWERVE_DRIVE_MAX_TURNING_SPEED);
+  private final DriveSubsystem m_driveSubsystem = new DriveSubsystem(m_inputSubsystem, DriveType.DIFFERENTIAL_DRIVE);
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController m_driverController = new CommandXboxController(

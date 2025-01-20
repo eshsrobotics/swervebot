@@ -39,21 +39,36 @@ public final class Constants {
     public static final double SWERVE_MODULE_WHEEL_RADIUS_METERS = 0.0508;
 
     /**
-     * The maximum speed driving speed of the robot in meters per second. (needs testing)
+     * Theoretical maximum of chassis speed in meters per second for kinematic
+     * conversion purposes.
      */
     public static final double SWERVE_DRIVE_MAX_DRIVING_SPEED = 0.5;
 
     /**
-     * The maximum turning speed of the robot in radians per second. (needs testing)
+     * Theoretical maximum turning speed of the robot in radians per second for
+     * kinematic conversion purposes.
      */
     public static final double SWERVE_DRIVE_MAX_TURNING_SPEED = 0.4;
 
     /**
      * The positions of the wheels on the Chassis measured in meters. (needs testing)
      */
-    public static final Translation2d SWERVE_MODULE_POSITION_FRONT_RIGHT = new Translation2d(0.3, 0.3); 
-    public static final Translation2d SWERVE_MODULE_POSITION_FRONT_LEFT = new Translation2d(0.3, -0.3); 
-    public static final Translation2d SWERVE_MODULE_POSITION_BACK_RIGHT = new Translation2d(-0.3, 0.3); 
-    public static final Translation2d SWERVE_MODULE_POSITION_BACK_LEFT = new Translation2d(-0.3, -0.3); 
+    public static final Translation2d SWERVE_MODULE_POSITION_FRONT_RIGHT = new Translation2d(0.3, 0.3);
+    public static final Translation2d SWERVE_MODULE_POSITION_FRONT_LEFT = new Translation2d(0.3, -0.3);
+    public static final Translation2d SWERVE_MODULE_POSITION_BACK_RIGHT = new Translation2d(-0.3, 0.3);
+    public static final Translation2d SWERVE_MODULE_POSITION_BACK_LEFT = new Translation2d(-0.3, -0.3);
+
+    /**
+     * The type of drive that the {@link DriveSubsystem} will use.
+     */
+    public enum DriveType {
+      SWERVE_DRIVE,
+      DIFFERENTIAL_DRIVE
+    }
+
+    public static final int DIFFERENTIAL_DRIVE_PWM_LEFT_MOTOR_1 = 1;
+    public static final int DIFFERENTIAL_DRIVE_PWM_LEFT_MOTOR_2 = 2;
+    public static final int DIFFERENTIAL_DRIVE_PWM_RIGHT_MOTOR_1 = 3;
+    public static final int DIFFERENTIAL_DRIVE_PWM_RIGHT_MOTOR_2 = 4;
   }
 }
