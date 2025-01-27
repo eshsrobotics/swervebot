@@ -66,9 +66,53 @@ public final class Constants {
       DIFFERENTIAL_DRIVE
     }
 
-    public static final int DIFFERENTIAL_DRIVE_PWM_LEFT_MOTOR_1 = 1;
-    public static final int DIFFERENTIAL_DRIVE_PWM_LEFT_MOTOR_2 = 2;
-    public static final int DIFFERENTIAL_DRIVE_PWM_RIGHT_MOTOR_1 = 3;
-    public static final int DIFFERENTIAL_DRIVE_PWM_RIGHT_MOTOR_2 = 4;
+    /**
+     * <p> We will have an array of four pivot motors and four drive motors. This
+     * enumeration is indices for the arrays so that we know which drive motor
+     * is in what location. </p>
+     *
+     * <p> If you see a shuffleboard display coming from PivotMotor2, then you will
+     * know you are dealing with a BACK_RIGHT pivot motor. </p>
+     *
+     * <p> This list will be null if we are using a differential drive. </p>
+     */
+    private enum WheelIndex {
+        FRONT_LEFT(0),
+        FRONT_RIGHT(1),
+        BACK_RIGHT(2),
+        BACK_LEFT(3);
+
+        public final int label;
+
+        private WheelIndex(int label) {
+            this.label = label;
+        }
+    }
+
+    // The differential drive does not care about the orders of the left and
+    // right motors because the same gearbox is driving the entire right and
+    // left side.
+    public static final int DIFFERENTIAL_DRIVE_PWM_LEFT_MOTOR_1 = WheelIndex.FRONT_LEFT.label;
+    public static final int DIFFERENTIAL_DRIVE_PWM_LEFT_MOTOR_2 = WheelIndex.BACK_LEFT.label;
+    public static final int DIFFERENTIAL_DRIVE_PWM_RIGHT_MOTOR_1 = WheelIndex.FRONT_RIGHT.label;
+    public static final int DIFFERENTIAL_DRIVE_PWM_RIGHT_MOTOR_2 = WheelIndex.BACK_RIGHT.label;
+
+    /**
+     * <p> Two motors cannot have the same ID on the CANBus; however, we still want
+     * to use the WheelIndex enumeration as it provides us with an easy way to
+     * know which motor is which. However, in a swerve drive, two motors are on
+     * the same module, and that creates a conflict. </p>
+     *
+     * <p> To resolve the conflict, we will offset the IDs of all PivotMotors by the
+     * number of drive motors. </p>
+     *
+     * <p> Suppose you have a random CAN ID. If it is between 0 and 3, it is a drive
+     * motor. If it is between 4 and 7, it is a pivot motors. All other values
+     * are neither. </p>
+     *
+     *
+     * </p> To find the position of the CAN ID on the chassis, take CAN ID modulo 4. </p>
+     */
+    public static final int PIVOT_MOTOR_CAN_OFFSET = 4;
   }
 }

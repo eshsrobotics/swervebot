@@ -23,21 +23,31 @@ public interface SwerveModuleBackend {
 
     /**
      * Returns the speed of the swerve module drive motor.
-     * @return a speed in meters per second
+     * @return a number between 1 (full speed forward) and -1 (full speed
+     *         backward). 0 means stopped.
      */
-    double getSpeedInMetersPerSecond();
+    double getDriveSpeed();
 
     /**
-     * Returns the distance that drive motors have traveled.
-     * @return returns a distance in meters
+     * Sets the speed of this swerve module's drive motor.
+     * @param driveSpeedPercent A value between 1 (full speed forward) and -1
+     *                          (full speed backwards). 0 stops the drive motor.
      */
-    double getDistanceInMeters();
+    void setDriveSpeed(double driveSpeedPercent);
+
+    /**
+     * Returns the number of rotations of swerve module drive motor since the
+     * last reset.
+     * @return returns a distance in revolutions
+     */
+    double getRevolutions();
+
 
     /**
      * Returns the angle of the swerve module pivot motor.
      * @return returns an angle in degrees
      */
-    double getPivotAngleInDegrees();
+    double getPivotAngle();
 
     /**
      * Sets angles for the swerve module pivot motor.
@@ -45,5 +55,6 @@ public interface SwerveModuleBackend {
      *                            The function will perform modulus operations
      *                            if necessary.
      */
-    void setPivotAngleInDegrees(double PivotAngleInDegrees);
+    void setPivotAngle(double PivotAngleInDegrees);
+
 };

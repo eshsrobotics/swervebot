@@ -5,6 +5,10 @@ import com.revrobotics.CANSparkMax;
 
 import frc.robot.Constants;
 
+/**
+ * An implementation of swerve modules using CANCoders for the pivot motors and
+ * built-in NEO Relative Encoders for the drive motors.
+ */
 public class CANCoderBackend implements SwerveModuleBackend {
 
     /** Owned by CANCoderBackend */
@@ -30,7 +34,7 @@ public class CANCoderBackend implements SwerveModuleBackend {
 
         // - A conversion factor of 1.0 will bypass conversion (i.e.,
         //   getVelocity() would return values in units of RPM.)
-        //   
+        //
         //   So how do we convert revolutions per minute to meters per second?
         //
         //   X revolutions    1 minute      (2 * PI * radius) meters        (2 * PI * radius)
@@ -47,7 +51,7 @@ public class CANCoderBackend implements SwerveModuleBackend {
         // TODO: This value of 0 is *almost certainly* not correct.  It's likely
         // the case that each swerve module will have a slightly different
         // number which represents its "straight forward" position, since the
-        // magnets are all positioned slightly differently.  
+        // magnets are all positioned slightly differently.
         //
         // Realistically, we will need an array of four angle value constants,
         // one for each swerve module.
@@ -59,7 +63,7 @@ public class CANCoderBackend implements SwerveModuleBackend {
     }
 
     @Override
-    public double getSpeedInMetersPerSecond() {
+    public double getDriveSpeed() {
         return driveMotorController.getEncoder().getVelocity();
     }
 
@@ -69,8 +73,8 @@ public class CANCoderBackend implements SwerveModuleBackend {
      * what is "backwards"), the distance will decrease and may become negative.
      */
     @Override
-    public double getDistanceInMeters() {
-        return driveMotorController.getEncoder().getPosition() * 2 * Math.PI 
+    public double getRevolutions() {
+        return driveMotorController.getEncoder().getPosition() * 2 * Math.PI
             * Constants.DriveConstants.SWERVE_MODULE_WHEEL_RADIUS_METERS;
     }
 
@@ -79,23 +83,23 @@ public class CANCoderBackend implements SwerveModuleBackend {
      * range of this function is the half-open interval [0, 360).
      */
     @Override
-    public double getPivotAngleInDegrees() {
+    public double getPivotAngle() {
         return (pivotEncoder.getPosition().getValueAsDouble() % 360 + 360) % 360;
     }
 
     /**
      * Rotate the pivot motor so that is has the given absolute angle.
-     * 
+     *
      * @param pivotAngleInDegrees The desired absolute position, with 0 degrees
      *                            pointing the swerve module straight forward.
      */
     @Override
-    public void setPivotAngleInDegrees(double pivotAngleInDegrees) {
-        
+    public void setPivotAngle(double pivotAngleInDegrees) {
+
         // PROBLEM:
         //
         // - pivotMotorController.encoder() is a relative encoder.
-        // - pivotEncoder is an absolute encoder, but does not influence the 
+        // - pivotEncoder is an absolute encoder, but does not influence the
         //   drive at all.
         //
         // QUESTION:
@@ -120,9 +124,9 @@ public class CANCoderBackend implements SwerveModuleBackend {
         // I think we need to go from R to R + D.
         // The rotation that gets us from R to R + D is (R + D - R) = D.
         final double relativeEncoderPosition = pivotMotorController.getEncoder().getPosition();
-        pivotPidController.setReference(relativeEncoderPosition + degreesToRotate, 
+        pivotPidController.setReference(relativeEncoderPosition + degreesToRotate,
                                         CANSparkMax.ControlType.kPosition);
-     
+
         // throw new UnsupportedOperationException("Unimplemented method 'setPivotAngleInDegrees'");
     }
 
@@ -142,5 +146,11 @@ public class CANCoderBackend implements SwerveModuleBackend {
         double delta = targetAngleDegrees - sourceAngleDegrees;
         double signedDelta = (delta + 180) % 360 - 180;
         return signedDelta;
+    }
+
+    @Override
+    public void setDriveSpeed(double driveSpeedPercent) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setDriveSpeed'");
     }
 }
