@@ -29,7 +29,7 @@ public class DriveSubsystem extends SubsystemBase {
      *
      * <p> This array will be null if we are using a swerve drive. </p>
      */
-    private List<PWMMotorController> differentialDriveMotors;
+    private List<CANSparkMax> differentialDriveMotors;
 
     /**
      * The list of Spark Maxes controlling the swerve drive motors.
@@ -64,16 +64,20 @@ public class DriveSubsystem extends SubsystemBase {
         this.driveType = driveType;
         switch (driveType) {
             case DIFFERENTIAL_DRIVE:
-                differentialDriveMotors = Arrays.asList(new PWMMotorController[] {
-                    new PWMSparkMax(DriveConstants.DIFFERENTIAL_DRIVE_PWM_LEFT_MOTOR_1),
-                    new PWMSparkMax(DriveConstants.DIFFERENTIAL_DRIVE_PWM_LEFT_MOTOR_2),
-                    new PWMSparkMax(DriveConstants.DIFFERENTIAL_DRIVE_PWM_RIGHT_MOTOR_1),
-                    new PWMSparkMax(DriveConstants.DIFFERENTIAL_DRIVE_PWM_RIGHT_MOTOR_2)
+                final int FRONT_LEFT = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.FRONT_LEFT;
+                final int FRONT_RIGHT = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.FRONT_RIGHT;
+                final int BACK_RIGHT = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.BACK_RIGHT;
+                final int BACK_LEFT = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.BACK_LEFT;
+                differentialDriveMotors = Arrays.asList(new CANSparkMax[] {
+                    new CANSparkMax(FRONT_LEFT),
+                    new CANSparkMax(FRONT_RIGHT),
+                    new CANSparkMax(BACK_RIGHT),
+                    new CANSparkMax(BACK_LEFT)
                 });
-                differentialDriveMotors.get(0).addFollower(differentialDriveMotors.get(1));
-                differentialDriveMotors.get(2).addFollower(differentialDriveMotors.get(3));
-                differentialDrive = new DifferentialDrive(differentialDriveMotors.get(0),
-                                                          differentialDriveMotors.get(2));
+                differentialDriveMotors.get(FRONT_LEFT).addFollower(differentialDriveMotors.get(BACK_LEFT));
+                differentialDriveMotors.get(FRONT_RIGHT).addFollower(differentialDriveMotors.get(BACK_RIGHT));
+                differentialDrive = new DifferentialDrive(differentialDriveMotors.get(FRONT_LEFT),
+                                                          differentialDriveMotors.get(FRONT_RIGHT));
                 break;
             case SWERVE_DRIVE:
                 break;

@@ -114,5 +114,6 @@ public final class Constants {
      * </p> To find the position of the CAN ID on the chassis, take CAN ID modulo 4. </p>
      */
     public static final int PIVOT_MOTOR_CAN_OFFSET = 4;
+    public static final int DRIVE_MOTOR_CAN_OFFSET = 0;
   }
 }
