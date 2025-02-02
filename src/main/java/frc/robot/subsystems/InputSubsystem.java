@@ -9,12 +9,44 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
 /**
- * Reads user input continuously from a side variety of human interface devices
- * (including, eventually, keyboard input).  The directional inputs are exposed
- * through the three channel querying methods {@link #getForwardBack()},
- * {@link #getLeftRight()}, and {@link #getTurn()}, while any
- * remaining buttons or sliders are exposed through their own methods.
+ * Reads user input continuously from a wide variety of human interface
+ * devices (including, eventually, keyboard input).  The directional inputs
+ * are exposed through the three channel querying methods {@link
+ * #getForwardBack()}, {@link #getLeftRight()}, and {@link #getTurn()}, while
+ * any remaining buttons or sliders are exposed through their own methods.
  *
+ * <p>On joystick support:</p>
+ * <ul>
+ *   <li>
+ *     <p>The system supports up to two joysticks, known as the <em>main</em>
+ *     and <em>secondary</em> joytsticks.  If there is only one joystick
+ *     plugged into the system, it will be considered the main joystick; if
+ *     there are two plugged in, whichever one was plugged in first will be
+ *     main and the most recent one will be secondary.</p>
+ *     <ul>
+ *       <li> Any joysticks plugged in beyond the first two will be ignored.</li>
+ *     </ul>
+ *   </li>
+ *   <li>
+ *     <p>If only one joystick is plugged into the system, then the mappings
+ *     to the driver channels are straightforward:</p>
+ *     <ul>
+ *       <li>X axis: {@link #getLeftRight() leftRight}</li>
+ *       <li>Y axis: {@link #getForwardBack() forwardBack}</li>
+ *       <li>Z axis (twisting the joystick): {@link #getTurn() turn}</li>
+ *     </ul>
+ *   </li>
+ *   <li>
+ *     <p>When two joysticks are plugged in, the mappings change as follows:</p>
+ *     <ul>
+ *       <li>Main joystick, X axis: {@link #getLeftRight() leftRight}</li>
+ *       <li>Main joystick, Y axis: {@link #getForwardBack() forwardBack}</li>
+ *       <li>Secondary joystick, X axis: {@link #getTurn() turn}</li>
+ *     </ul>
+ *   </li>
+ * </ul>
+ * <p>See `README.md` for a complete list of joystick and controller button
+ * mappings.</p>
  */
 public class InputSubsystem extends SubsystemBase {
 
@@ -31,6 +63,10 @@ public class InputSubsystem extends SubsystemBase {
      */
     private static final double JOYSTICK_POLLING_INTERVAL_SECONDS = 3.0;
 
+    /**
+     * When we last looked for new human input devices, measured in seconds
+     * since the robot powered on.
+     */
     private double lastCheckTimeSeconds;
 
     public InputSubsystem() {
@@ -40,6 +76,9 @@ public class InputSubsystem extends SubsystemBase {
         lastCheckTimeSeconds = Timer.getFPGATimestamp() - JOYSTICK_POLLING_INTERVAL_SECONDS; // Force initial check
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getName() {
         return "Input Subsystem";
@@ -161,18 +200,45 @@ public class InputSubsystem extends SubsystemBase {
                 // Xbox controller is not connected on port i, not a big deal.
             }
 
-            // We want to be able to support both 1- and 2-joystick scenarios.
-            try {
-                Joystick j = new Joystick(i);
-                if (assignJoystick(j)) {
+            // Can we still accept another joystick?
+            if (!mainJoystickFound() || !secondaryJoystickFound()) {
+
+                if ((mainJoystickFound() && mainJoystick.getPort() == i) ||
+                    (secondaryJoystickFound() && secondaryJoystick.getPort() == i)) {
+                    // We already know there's a working joystick on this
+                    // port.
                     continue;
                 }
-            } catch (Exception e) {
-                // No joystick at port i, not a big deal.
-            }
 
+                // We want to be able to support both 1- and 2-joystick
+                // scenarios.
+                try {
+                    Joystick j = new Joystick(i);
+                    if (assignJoystick(j)) {
+                        continue;
+                    }
+                } catch (Exception e) {
+                    // No joystick at port i, not a big deal.
+                }
+            }
             // TODO: Add NetworkTables support.
         }
+    }
+
+    /**
+     * A simple utility function that returns true if {@link #mainJoystick} is
+     * usable.
+     */
+    private boolean mainJoystickFound() {
+        return mainJoystick != null && mainJoystick.isConnected();
+    }
+
+    /**
+     * A simple utility function that returns true if {@link
+     * #secondaryJoystick} is usable.
+     */
+    private boolean secondaryJoystickFound() {
+        return secondaryJoystick != null && secondaryJoystick.isConnected();
     }
 
     /**
@@ -190,21 +256,21 @@ public class InputSubsystem extends SubsystemBase {
         boolean success = true;
         String message = "";
 
-        if (mainJoystick == null || !mainJoystick.isConnected()) {
+        if (!mainJoystickFound()) {
 
-            if (secondaryJoystick == null || !secondaryJoystick.isConnected()) {
+            if (!secondaryJoystickFound()) {
                 mainJoystick = j;
-                message = "assigning new joystick on port %d to main.\n".formatted(j.getPort());
+                message = "assigned new joystick on port %d to main.\n".formatted(j.getPort());
             } else {
                 mainJoystick = secondaryJoystick;
                 secondaryJoystick = j;
-                message = "assigning secondary to the main joystick and assigning new joystick on port %d to the secondary.\n".formatted(j.getPort());
+                message = "assigned secondary to the main joystick and assigned new joystick on port %d to the secondary.\n".formatted(j.getPort());
             }
         } else { // Main joystick is connected.
 
-            if (secondaryJoystick == null || !secondaryJoystick.isConnected()) {
+            if (!secondaryJoystickFound()) {
                 secondaryJoystick = j;
-                message = "assigning new joystick on port %d to secondary.\n".formatted(j.getPort());
+                message = "assigned new joystick on port %d to secondary.\n".formatted(j.getPort());
             } else {
                 // Already have two working joysticks, so 3rd joystick does nothing.
                 // Not even worth logging.
