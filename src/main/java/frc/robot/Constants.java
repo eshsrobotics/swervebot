@@ -4,6 +4,9 @@
 
 package frc.robot;
 
+import java.util.Arrays;
+import java.util.List;
+
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Translation2d;
 
@@ -51,12 +54,16 @@ public final class Constants {
     public static final double SWERVE_DRIVE_MAX_TURNING_SPEED = 0.4;
 
     /**
-     * The positions of the wheels on the Chassis measured in meters. (needs testing)
+     * The positions of the wheels on the Chassis measured in meters.
+     *
+     * @todo Measure the real values for these numbers.
      */
-    public static final Translation2d SWERVE_MODULE_POSITION_FRONT_RIGHT = new Translation2d(0.3, 0.3);
-    public static final Translation2d SWERVE_MODULE_POSITION_FRONT_LEFT = new Translation2d(0.3, -0.3);
-    public static final Translation2d SWERVE_MODULE_POSITION_BACK_RIGHT = new Translation2d(-0.3, 0.3);
-    public static final Translation2d SWERVE_MODULE_POSITION_BACK_LEFT = new Translation2d(-0.3, -0.3);
+    public static final List<Translation2d> SWERVE_MODULE_POSITIONS = Arrays.asList(
+      new Translation2d(0.3, -0.3), // FRONT_LEFT
+      new Translation2d(0.3, 0.3),  // FRONT_RIGHT,
+      new Translation2d(-0.3, 0.3), // BACK RIGHT
+      new Translation2d(-0.3, -0.3) // BACK LEFT
+    );
 
     /**
      * The type of drive that the {@link DriveSubsystem} will use.
@@ -76,7 +83,7 @@ public final class Constants {
      *
      * <p> This list will be null if we are using a differential drive. </p>
      */
-    private enum WheelIndex {
+    public enum WheelIndex {
         FRONT_LEFT(0),
         FRONT_RIGHT(1),
         BACK_RIGHT(2),
@@ -115,5 +122,19 @@ public final class Constants {
      */
     public static final int PIVOT_MOTOR_CAN_OFFSET = 4;
     public static final int DRIVE_MOTOR_CAN_OFFSET = 0;
+
+    /**
+     * Assumption: IF we can assign the CAN IDs to all four CANCoders, *THEN* we prefer to
+     * assign them in the order:
+     * <ol>
+     *    <li>FRONT_LEFT</li>
+     *    <li>FRONT_RIGHT</li>
+     *    <li>BACK_RIGHT</li>
+     *    <li>BACK_LEFT</li>
+     *  </ol>
+     * This will give us a way to predict the correct CANCoder behind any CAN ID
+     * we see.
+     */
+    public static final int CAN_CODER_CAN_OFFSET = 8;
   }
 }
