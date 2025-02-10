@@ -1,7 +1,7 @@
 package frc.robot.subsystems;
 
 import com.ctre.phoenix6.hardware.CANcoder;
-import com.revrobotics.CANSparkMax;
+import com.revrobotics.spark.SparkMax;
 
 import frc.robot.Constants;
 
@@ -14,7 +14,7 @@ public class CANCoderBackend implements SwerveModuleBackend {
     /** Owned by CANCoderBackend */
     private CANcoder pivotEncoder;
     /** Passed into CANCoderBackend */
-    private CANSparkMax driveMotorController, pivotMotorController;
+    private SparkMax driveMotorController, pivotMotorController;
 
     /**
      * Creates a CANCoderBackend that owns a CAN coder to control pivot angles.
@@ -27,7 +27,7 @@ public class CANCoderBackend implements SwerveModuleBackend {
      * @param pivotMotor The motor this backend object will use for pivoting.
      * @param canID The ID of the CAN coder on the CAN bus.
      */
-    public CANCoderBackend(CANSparkMax driveMotor, CANSparkMax pivotMotor, int canID) {
+    public CANCoderBackend(SparkMax driveMotor, SparkMax pivotMotor, int canID) {
         driveMotorController = driveMotor;
         pivotMotorController = pivotMotor;
         pivotEncoder = new CANcoder(canID);
@@ -42,7 +42,7 @@ public class CANCoderBackend implements SwerveModuleBackend {
         //      1 minute      60 seconds          1 revolution                      60
 
         double conversionFactor = (2 * Math.PI * Constants.DriveConstants.SWERVE_MODULE_WHEEL_RADIUS_METERS) / 60;
-        driveMotorController.getEncoder().setVelocityConversionFactor(conversionFactor);
+        //driveMotorController.getEncoder().setVelocityConversionFactor(conversionFactor);
     }
 
     @Override
@@ -115,7 +115,7 @@ public class CANCoderBackend implements SwerveModuleBackend {
         final double sourceAngleDegrees = absoluteEncoderPosition * 360;
         final double degreesToRotate = signedDelta(sourceAngleDegrees, pivotAngleInDegrees);
 
-        var pivotPidController = pivotMotorController.getPIDController();
+        //var pivotPidController = pivotMotorController.getPIDController();
 
         // R = relative encoder's (CANSparkMax) current position
         // A = absolute encoder's current position (CANCoder)
@@ -124,8 +124,8 @@ public class CANCoderBackend implements SwerveModuleBackend {
         // I think we need to go from R to R + D.
         // The rotation that gets us from R to R + D is (R + D - R) = D.
         final double relativeEncoderPosition = pivotMotorController.getEncoder().getPosition();
-        pivotPidController.setReference(relativeEncoderPosition + degreesToRotate,
-                                        CANSparkMax.ControlType.kPosition);
+        //pivotPidController.setReference(relativeEncoderPosition + degreesToRotate,
+                                        //SparkMax.ControlType.kPosition);
 
         // throw new UnsupportedOperationException("Unimplemented method 'setPivotAngleInDegrees'");
     }

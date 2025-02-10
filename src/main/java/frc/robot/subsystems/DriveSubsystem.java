@@ -5,10 +5,13 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.ctre.phoenix6.hardware.CANcoder;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.CANSparkBase.IdleMode;
+import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -36,19 +39,19 @@ public class DriveSubsystem extends SubsystemBase {
      *
      * <p> This array will be null if we are using a swerve drive. </p>
      */
-    private List<CANSparkMax> differentialDriveMotors;
+    private List<SparkMax> differentialDriveMotors;
 
     /**
      * The list of Spark Maxes controlling the swerve drive motors.
      */
-    private List<CANSparkMax> swerveDriveMotors;
+    private List<SparkMax> swerveDriveMotors;
 
     /**
      * The list of Spark Maxes controlling the swerve pivot motors.
      *
      * <p> This list will be null if we are using a differential drive. </p>
      */
-    private List<CANSparkMax> swervePivotMotors;
+    private List<SparkMax> swervePivotMotors;
 
     /**
      * To read each swerve module's pivot angle, we will use CANCoders (we will
@@ -93,14 +96,20 @@ public class DriveSubsystem extends SubsystemBase {
                 final int FRONT_RIGHT = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.FRONT_RIGHT.label;
                 final int BACK_RIGHT = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.BACK_RIGHT.label;
                 final int BACK_LEFT = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.BACK_LEFT.label;
-                differentialDriveMotors = Arrays.asList(new CANSparkMax[] {
-                    new CANSparkMax(FRONT_LEFT, MotorType.kBrushed),
-                    new CANSparkMax(FRONT_RIGHT, MotorType.kBrushed),
-                    new CANSparkMax(BACK_RIGHT, MotorType.kBrushed),
-                    new CANSparkMax(BACK_LEFT, MotorType.kBrushed)
+                differentialDriveMotors = Arrays.asList(new SparkMax[] {
+                    new SparkMax(FRONT_RIGHT, MotorType.kBrushed),
+                    new SparkMax(BACK_RIGHT, MotorType.kBrushed),
+                    new SparkMax(BACK_LEFT, MotorType.kBrushed),
+                    new SparkMax(FRONT_LEFT, MotorType.kBrushed)
                 });
-                differentialDriveMotors.get(FRONT_LEFT).addFollower(differentialDriveMotors.get(BACK_LEFT));
-                differentialDriveMotors.get(FRONT_RIGHT).addFollower(differentialDriveMotors.get(BACK_RIGHT));
+                SparkMaxConfig commonConfig = new SparkMaxConfig();
+                commonConfig.idleMode(IdleMode.kBrake);
+                SparkMaxConfig leftConfig = new SparkMaxConfig();
+                SparkMaxConfig rightConfig = new SparkMaxConfig();
+                leftConfig.follow(FRONT_LEFT).apply(commonConfig);
+                rightConfig.follow(FRONT_RIGHT).apply(commonConfig);
+                differentialDriveMotors.get(FRONT_LEFT).configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                differentialDriveMotors.get(FRONT_RIGHT).configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
                 differentialDrive = new DifferentialDrive(differentialDriveMotors.get(FRONT_LEFT),
                                                           differentialDriveMotors.get(FRONT_RIGHT));
                 break;
@@ -112,25 +121,30 @@ public class DriveSubsystem extends SubsystemBase {
                 final int BACK_LEFT = DriveConstants.WheelIndex.BACK_LEFT.label;
 
                 // Initialize drive motors
-                swerveDriveMotors = Arrays.asList(new CANSparkMax[] {
-                    new CANSparkMax(Constants.DriveConstants.DRIVE_MOTOR_CAN_OFFSET + FRONT_LEFT, MotorType.kBrushless),
-                    new CANSparkMax(Constants.DriveConstants.DRIVE_MOTOR_CAN_OFFSET + FRONT_RIGHT, MotorType.kBrushless),
-                    new CANSparkMax(Constants.DriveConstants.DRIVE_MOTOR_CAN_OFFSET + BACK_RIGHT, MotorType.kBrushless),
-                    new CANSparkMax(Constants.DriveConstants.DRIVE_MOTOR_CAN_OFFSET + BACK_LEFT, MotorType.kBrushless)
+                swerveDriveMotors = Arrays.asList(new SparkMax[] {
+                    new SparkMax(Constants.DriveConstants.DRIVE_MOTOR_CAN_OFFSET + FRONT_LEFT, MotorType.kBrushless),
+                    new SparkMax(Constants.DriveConstants.DRIVE_MOTOR_CAN_OFFSET + FRONT_RIGHT, MotorType.kBrushless),
+                    new SparkMax(Constants.DriveConstants.DRIVE_MOTOR_CAN_OFFSET + BACK_RIGHT, MotorType.kBrushless),
+                    new SparkMax(Constants.DriveConstants.DRIVE_MOTOR_CAN_OFFSET + BACK_LEFT, MotorType.kBrushless)
                 });
 
                 // Initialize pivot motors
-                swervePivotMotors = Arrays.asList(new CANSparkMax[] {
-                    new CANSparkMax(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + FRONT_LEFT, MotorType.kBrushless),
-                    new CANSparkMax(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + FRONT_RIGHT, MotorType.kBrushless),
-                    new CANSparkMax(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + BACK_RIGHT, MotorType.kBrushless),
-                    new CANSparkMax(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + BACK_LEFT, MotorType.kBrushless)
+                swervePivotMotors = Arrays.asList(new SparkMax[] {
+                    new SparkMax(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + FRONT_LEFT, MotorType.kBrushless),
+                    new SparkMax(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + FRONT_RIGHT, MotorType.kBrushless),
+                    new SparkMax(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + BACK_RIGHT, MotorType.kBrushless),
+                    new SparkMax(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + BACK_LEFT, MotorType.kBrushless)
                 });
 
                 // Initialize the pivot motors in a similar manner to how we
                 // initialized them for the 2020bot.
+                SparkMaxConfig config = new SparkMaxConfig();
+                config.idleMode(IdleMode.kBrake);
+                //TODO: This belongs in drive motor configuration for getting
+                //the drive speed in meters per second.
+                //config.encoder.velocityConversionFactor(getConversionFactor());
                 swervePivotMotors.forEach(motor -> {
-                    motor.setIdleMode(IdleMode.kBrake);
+                    motor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
                 });
 
                 // Initialize CANcoders
@@ -143,6 +157,19 @@ public class DriveSubsystem extends SubsystemBase {
                 break;
             }
         }
+    }
+
+    private static double getConversionFactor() {
+         // - A conversion factor of 1.0 will bypass conversion (i.e.,
+        //   getVelocity() would return values in units of RPM.)
+        //
+        //   So how do we convert revolutions per minute to meters per second?
+        //
+        //   X revolutions    1 minute      (2 * PI * radius) meters        (2 * PI * radius)
+        //   ------------- * ----------- * -------------------------- = X * ----------------- meters per second
+        //      1 minute      60 seconds          1 revolution                      60
+
+        return (2 * Math.PI * Constants.DriveConstants.SWERVE_MODULE_WHEEL_RADIUS_METERS) / 60;
     }
 
     /**
