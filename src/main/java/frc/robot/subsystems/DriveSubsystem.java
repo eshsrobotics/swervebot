@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.revrobotics.spark.SparkMax;
@@ -13,9 +14,11 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
@@ -23,9 +26,9 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.*;
 import frc.robot.Constants.DriveConstants.DriveType;
+import frc.robot.Constants.DriveConstants.WheelIndex;
 
 public class DriveSubsystem extends SubsystemBase {
-
 
     private InputSubsystem input;
     private double maxDriveSpeed;
@@ -79,6 +82,13 @@ public class DriveSubsystem extends SubsystemBase {
         0,    // BACK_RIGHT
         12    // BACK_LEFT
     };
+
+    /**
+     * PID controllers. We'll use four PID Controllers with the same constants
+     * for each pivot motor. We'll use the CANCoder's absolute angle as the measurement.
+     */
+
+    private List<PIDController> pivotMotorPIDControllers;
 
     /**
      * Intended to be owned by the RobotContainer and to be used by
@@ -154,6 +164,13 @@ public class DriveSubsystem extends SubsystemBase {
                     new CANcoder(Constants.DriveConstants.CAN_CODER_CAN_OFFSET + BACK_RIGHT),
                     new CANcoder(Constants.DriveConstants.CAN_CODER_CAN_OFFSET + BACK_LEFT)
                 });
+
+                pivotMotorPIDControllers = Arrays.asList(new PIDController[] {
+                    new PIDController(Constants.DriveConstants.PIVOT_MOTOR_P, Constants.DriveConstants.PIVOT_MOTOR_I, Constants.DriveConstants.PIVOT_MOTOR_D),
+                    new PIDController(Constants.DriveConstants.PIVOT_MOTOR_P, Constants.DriveConstants.PIVOT_MOTOR_I, Constants.DriveConstants.PIVOT_MOTOR_D),
+                    new PIDController(Constants.DriveConstants.PIVOT_MOTOR_P, Constants.DriveConstants.PIVOT_MOTOR_I, Constants.DriveConstants.PIVOT_MOTOR_D),
+                    new PIDController(Constants.DriveConstants.PIVOT_MOTOR_P, Constants.DriveConstants.PIVOT_MOTOR_I, Constants.DriveConstants.PIVOT_MOTOR_D)
+                });
                 break;
             }
         }
@@ -170,6 +187,70 @@ public class DriveSubsystem extends SubsystemBase {
         //      1 minute      60 seconds          1 revolution                      60
 
         return (2 * Math.PI * Constants.DriveConstants.SWERVE_MODULE_WHEEL_RADIUS_METERS) / 60;
+    }
+
+    @FunctionalInterface
+    public interface TriConsumer<T1,T2,T3> {
+        public void accept(T1 t1, T2 t2, T3 t3);
+    }
+
+    /**
+     * Determines the set of values we'll send to and from the shuffleboard.
+     * @param builder The object that will be used to send values to the shuffleboard.
+     */
+    @Override
+    public void initSendable(SendableBuilder builder) {
+        TriConsumer<List<SparkMax>, String, WheelIndex> addMotorHelper = (motors, name, index) -> {
+            builder.addDoubleProperty(name,
+                                      () -> motors.get(index.label).get(),
+                                      (speed) -> motors.get(index.label).set(speed));
+        };
+        builder.setSmartDashboardType(this.driveType.toString() == "DIFFERENTIAL_DRIVE" ? "DifferentialDrive" : "SwerveDrive");
+        switch (driveType) {
+            case DIFFERENTIAL_DRIVE:
+
+                // Add the differential drive motors to the shuffleboard.
+                addMotorHelper.accept(differentialDriveMotors, "FR Motor", WheelIndex.FRONT_RIGHT);
+                addMotorHelper.accept(differentialDriveMotors, "FL Motor", WheelIndex.FRONT_LEFT);
+                addMotorHelper.accept(differentialDriveMotors, "BR Motor", WheelIndex.BACK_RIGHT);
+                addMotorHelper.accept(differentialDriveMotors, "BL Motor", WheelIndex.BACK_LEFT);
+                break;
+            case SWERVE_DRIVE:
+
+                // Add the swerve drive motors to the shuffleboard.
+                addMotorHelper.accept(swerveDriveMotors, "FR Drive", WheelIndex.FRONT_RIGHT);
+                addMotorHelper.accept(swerveDriveMotors, "FL Drive", WheelIndex.FRONT_LEFT);
+                addMotorHelper.accept(swerveDriveMotors, "BR Drive", WheelIndex.BACK_RIGHT);
+                addMotorHelper.accept(swerveDriveMotors, "BL Drive", WheelIndex.BACK_LEFT);
+
+                // Add the swerve pivot motors to the shuffleboard.
+                addMotorHelper.accept(swervePivotMotors, "FR Pivot", WheelIndex.FRONT_RIGHT);
+                addMotorHelper.accept(swervePivotMotors, "FL Pivot", WheelIndex.FRONT_LEFT);
+                addMotorHelper.accept(swervePivotMotors, "BR Pivot", WheelIndex.BACK_RIGHT);
+                addMotorHelper.accept(swervePivotMotors, "BL Pivot", WheelIndex.BACK_LEFT);
+                break;
+        }
+        builder.setActuator(true);
+        builder.setSafeState(this::disable);
+        super.initSendable(builder);
+    }
+
+    /**
+     * Calling this function removes the shuffleboard's ability to write values
+     * to the motors. This is called by our sendable interface so that the only
+     * time a shuffleboard live window can set motor speeds, is during test
+     * mode.
+     */
+    void disable() {
+        switch (driveType) {
+            case DIFFERENTIAL_DRIVE:
+                differentialDriveMotors.forEach(SparkMax::disable);
+                break;
+            case SWERVE_DRIVE:
+                swerveDriveMotors.forEach(SparkMax::disable);
+                swervePivotMotors.forEach(SparkMax::disable);
+                break;
+        }
     }
 
     /**
@@ -203,20 +284,19 @@ public class DriveSubsystem extends SubsystemBase {
 
                 SwerveModuleState[] swerveStates = kinematics.toSwerveModuleStates(movement);
 
-                // Scenario: FRONT_LEFT swerve module
-                // - It is currently facing at 90 degrees (so it points right.)
-                // - According to human input, we need it to point at -45
-                //   degrees (45 degrees left of center).
-                // - If we ASK the swerve module "what is your angle", the
-                //   RelativeEncoder will tell us "why, 21.82 degrees, of
-                //   course."  Because since the robot turned on, the module has
-                //   rotated 21.82 degrees.
-                // - PROBLEM: 21.82 does not equal 90.
-                //   * The swerve module is unaware of its own absolute angle.
-                //   * Only one entity holds that source of truth: the CANCoder.
+                double[] CANCoderAngles = new double[4];
+                for (int i = 0; i < 4; i++) {
+                   var temporary = swerveCANCODER.get(i).getAbsolutePosition();
+                   temporary.refresh();
+                   CANCoderAngles[i] = temporary.getValueAsDouble();
+                }
 
-                // Solution.SEPEHR:
-                // 1. Have a PID controller
+                // TODO: Use the CANCoder's measurements for the PID
+                // controllers. We still don't have the idea of goal angles (our
+                // setpoint) yet.
+                //
+                // Later, we should InItsendable to send our piviot angles to
+                // the suffleboard for easier debugging.
 
                 break;
             default:

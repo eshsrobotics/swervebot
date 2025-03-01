@@ -136,5 +136,18 @@ public final class Constants {
      * we see.
      */
     public static final int CAN_CODER_CAN_OFFSET = 8;
+
+    /**
+     * PID Constants for the Pivot Motors
+     * TODO: Find the PID Constants for the Pivot Motors.
+     */
+    public static final double PIVOT_MOTOR_P = 0.1;
+    public static final double PIVOT_MOTOR_I = 0;
+    public static final double PIVOT_MOTOR_D = 0;
+
+    /**
+     * We are assuming that we can assign CANCoders IDs just like we can assign
+     * Spark Maxes IDs.
+     */
   }
 }

@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
@@ -292,6 +293,18 @@ public class InputSubsystem extends SubsystemBase {
             System.out.printf("%s: %s and %s; %s.\n", prefix, mainJoystickString, secondaryJoystickString, message);
         }
         return success;
+    }
+
+    /**
+     * Writes the input values to the shuffleboard.
+     */
+    @Override
+    public void initSendable(SendableBuilder builder) {
+        builder.setSmartDashboardType("InputSubsystem");
+        builder.addDoubleProperty("Turn", this::getTurn, null);
+        builder.addDoubleProperty("ForwardBack", this::getForwardBack, null);
+        builder.addDoubleProperty("LeftRight", this::getLeftRight, null);
+        // super.initSendable(builder);
     }
 
     // TODO We need to call the controller check every few seconds during
