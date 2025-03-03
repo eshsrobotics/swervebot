@@ -120,8 +120,8 @@ public final class Constants {
      *
      * </p> To find the position of the CAN ID on the chassis, take CAN ID modulo 4. </p>
      */
-    public static final int PIVOT_MOTOR_CAN_OFFSET = 4;
-    public static final int DRIVE_MOTOR_CAN_OFFSET = 0;
+    public static final int PIVOT_MOTOR_CAN_OFFSET = 5;
+    public static final int DRIVE_MOTOR_CAN_OFFSET = 1;
 
     /**
      * Assumption: IF we can assign the CAN IDs to all four CANCoders, *THEN* we prefer to
@@ -134,8 +134,9 @@ public final class Constants {
      *  </ol>
      * This will give us a way to predict the correct CANCoder behind any CAN ID
      * we see.
+     * 
      */
-    public static final int CAN_CODER_CAN_OFFSET = 8;
+    public static final int PIVOT_MOTOR_CAN_CODER_CAN_ID_OFFSET = 9;
 
     /**
      * PID Constants for the Pivot Motors
@@ -145,9 +146,26 @@ public final class Constants {
     public static final double PIVOT_MOTOR_I = 0;
     public static final double PIVOT_MOTOR_D = 0;
 
-    /**
-     * We are assuming that we can assign CANCoders IDs just like we can assign
-     * Spark Maxes IDs.
-     */
+
+    
   }
+
+  public static class ArmConstants {
+    
+    /******************************
+    * CAN IDS FOR THE ARM MOTORS *
+    ******************************/
+
+    // The Pivot Motor CAN IDs are between 9 and 12. As such, we set the arm
+    // motor IDs to very large values so we will have a large buffer between the
+    // CAN IDs; this way, we can avoid any conflicts.
+    public static final int LEFT_LIFT_CAN_ID = 20; 
+    public static final int RIGHT_LIFT_CAN_ID = 21; 
+    public static final int LEFT_ALGAE_CAN_ID = 22; 
+    public static final int RIGHT_ALGAE_CAN_ID = 23; 
+    public static final int CORAL_INTAKE_CAN_ID = 24;
+
+    public static final double LIFT_SPEED = 0;
+  }
+
 }

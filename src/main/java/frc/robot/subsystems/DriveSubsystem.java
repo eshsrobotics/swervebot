@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
 
+import javax.lang.model.util.ElementScanner14;
+
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.PersistMode;
@@ -87,8 +89,13 @@ public class DriveSubsystem extends SubsystemBase {
      * PID controllers. We'll use four PID Controllers with the same constants
      * for each pivot motor. We'll use the CANCoder's absolute angle as the measurement.
      */
-
     private List<PIDController> pivotMotorPIDControllers;
+    
+    /**
+     * Determines whether or not the shuffle board values should affect the wheels
+     * of the robot based on if the joystick is being moved.
+     */
+    private boolean canShuffleBoardActuate;
 
     /**
      * Intended to be owned by the RobotContainer and to be used by
@@ -100,6 +107,8 @@ public class DriveSubsystem extends SubsystemBase {
     public DriveSubsystem(InputSubsystem inputSubsystem, DriveType driveType) {
         super("swerveDrive");
         this.driveType = driveType;
+        input = inputSubsystem;
+        canShuffleBoardActuate = false;
         switch (driveType) {
             case DIFFERENTIAL_DRIVE: {
                 final int FRONT_LEFT = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.FRONT_LEFT.label;
@@ -112,6 +121,11 @@ public class DriveSubsystem extends SubsystemBase {
                     new SparkMax(BACK_LEFT, MotorType.kBrushed),
                     new SparkMax(FRONT_LEFT, MotorType.kBrushed)
                 });
+
+                // We are using two different Configs for the left and right
+                // motors as sometimes they will be doing different things at
+                // times. For example, when turning, the left and the right side
+                // will be moving in the opposite directions.
                 SparkMaxConfig commonConfig = new SparkMaxConfig();
                 commonConfig.idleMode(IdleMode.kBrake);
                 SparkMaxConfig leftConfig = new SparkMaxConfig();
@@ -119,7 +133,9 @@ public class DriveSubsystem extends SubsystemBase {
                 leftConfig.follow(FRONT_LEFT).apply(commonConfig);
                 rightConfig.follow(FRONT_RIGHT).apply(commonConfig);
                 differentialDriveMotors.get(FRONT_LEFT).configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                differentialDriveMotors.get(BACK_LEFT).configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
                 differentialDriveMotors.get(FRONT_RIGHT).configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                differentialDriveMotors.get(BACK_RIGHT).configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
                 differentialDrive = new DifferentialDrive(differentialDriveMotors.get(FRONT_LEFT),
                                                           differentialDriveMotors.get(FRONT_RIGHT));
                 break;
@@ -159,10 +175,10 @@ public class DriveSubsystem extends SubsystemBase {
 
                 // Initialize CANcoders
                 swerveCANCODER = Arrays.asList(new CANcoder[] {
-                    new CANcoder(Constants.DriveConstants.CAN_CODER_CAN_OFFSET + FRONT_LEFT),
-                    new CANcoder(Constants.DriveConstants.CAN_CODER_CAN_OFFSET + FRONT_RIGHT),
-                    new CANcoder(Constants.DriveConstants.CAN_CODER_CAN_OFFSET + BACK_RIGHT),
-                    new CANcoder(Constants.DriveConstants.CAN_CODER_CAN_OFFSET + BACK_LEFT)
+                    new CANcoder(Constants.DriveConstants.PIVOT_MOTOR_CAN_CODER_CAN_ID_OFFSET + FRONT_LEFT),
+                    new CANcoder(Constants.DriveConstants.PIVOT_MOTOR_CAN_CODER_CAN_ID_OFFSET + FRONT_RIGHT),
+                    new CANcoder(Constants.DriveConstants.PIVOT_MOTOR_CAN_CODER_CAN_ID_OFFSET + BACK_RIGHT),
+                    new CANcoder(Constants.DriveConstants.PIVOT_MOTOR_CAN_CODER_CAN_ID_OFFSET + BACK_LEFT)
                 });
 
                 pivotMotorPIDControllers = Arrays.asList(new PIDController[] {
@@ -203,7 +219,10 @@ public class DriveSubsystem extends SubsystemBase {
         TriConsumer<List<SparkMax>, String, WheelIndex> addMotorHelper = (motors, name, index) -> {
             builder.addDoubleProperty(name,
                                       () -> motors.get(index.label).get(),
-                                      (speed) -> motors.get(index.label).set(speed));
+                                      (speed) -> {
+                                          motors.get(index.label).set(speed);
+                                          canShuffleBoardActuate = true;
+                                      });
         };
         builder.setSmartDashboardType(this.driveType.toString() == "DIFFERENTIAL_DRIVE" ? "DifferentialDrive" : "SwerveDrive");
         switch (driveType) {
@@ -232,7 +251,7 @@ public class DriveSubsystem extends SubsystemBase {
         }
         builder.setActuator(true);
         builder.setSafeState(this::disable);
-        super.initSendable(builder);
+        initSendable(builder);
     }
 
     /**
@@ -260,7 +279,17 @@ public class DriveSubsystem extends SubsystemBase {
     public void periodic() {
         switch (driveType) {
             case DIFFERENTIAL_DRIVE:
-                differentialDrive.arcadeDrive(input.getForwardBack(), input.getTurn());
+
+                // If the joystick is being moved, then the shuffleboard will be
+                // prevented from setting anything. This is to prevent the
+                // problem of the arcadeDrive() overriding the values that the
+                // shuffleboard sets.
+                if (input.getForwardBack() != 0 || input.getTurn() != 0) {
+                    differentialDrive.arcadeDrive(input.getForwardBack(), input.getTurn());
+                    canShuffleBoardActuate = false;
+                } else if (!canShuffleBoardActuate) { 
+                    differentialDrive.arcadeDrive(0, 0);
+                }
                 break;
             case SWERVE_DRIVE:
                 // Convert the human input into a ChassisSpeeds object giving us

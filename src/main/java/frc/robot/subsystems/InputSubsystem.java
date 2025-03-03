@@ -176,6 +176,12 @@ public class InputSubsystem extends SubsystemBase {
         return m_rotLimiter.calculate(turn);
     }
 
+    
+    // public double getLiftSpeed() {
+    //     double liftOut = (xboxController != null && xboxController.isConnected() && xboxController.getBButton() ? Constants.ArmConstants.LIFT_SPEED : 0);
+    //     return liftOut;
+    // } 
+
     /**
      * A function called every few seconds meant to detect when xbox controllers
      * or joysticks are connected or disconnected, and updates dynamically.
