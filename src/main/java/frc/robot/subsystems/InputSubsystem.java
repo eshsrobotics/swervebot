@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.RelativeEncoder;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.util.sendable.SendableBuilder;
@@ -70,11 +72,14 @@ public class InputSubsystem extends SubsystemBase {
      */
     private double lastCheckTimeSeconds;
 
+    int currentHeight;
+
     public InputSubsystem() {
         xboxController = null;
         mainJoystick = null;
         secondaryJoystick = null;
         lastCheckTimeSeconds = Timer.getFPGATimestamp() - JOYSTICK_POLLING_INTERVAL_SECONDS; // Force initial check
+        currentHeight = 0;
     }
 
     /**
@@ -176,11 +181,52 @@ public class InputSubsystem extends SubsystemBase {
         return m_rotLimiter.calculate(turn);
     }
 
-    
-    // public double getLiftSpeed() {
-    //     double liftOut = (xboxController != null && xboxController.isConnected() && xboxController.getBButton() ? Constants.ArmConstants.LIFT_SPEED : 0);
-    //     return liftOut;
-    // } 
+    /**
+     * A function to return the number of desired rotations of the lift motors based on user input.
+     * - Stage 0 represents base height of the lift when idle, which is equal to the height of the trough.
+     * - Each additional stage (up to the top) represents the next level of the coral branch. 
+     *   - Lift stage 1 -> coral level 2
+     *   - Lift stage 2 ->  coral level 3
+     *   - Lift stage 3 -> coral level 4
+     * 
+     * - Each time the user presses one of the lift triggering buttons, 
+     *   the lift will automatically transition between the stages.
+     */
+    public double getDesiredPosition() {
+        double[] liftHeights = {
+            Constants.ArmConstants.DEFAULT_HEIGHT,
+            Constants.ArmConstants.LIFT_HEIGHT_1, 
+            Constants.ArmConstants.LIFT_HEIGHT_2,
+            Constants.ArmConstants.LIFT_HEIGHT_3};
+        
+
+
+        if(xboxController != null &&xboxController.isConnected() == true) {
+            if(xboxController.getBButtonPressed() && currentHeight <= 3) {
+                currentHeight++;
+            } else if(xboxController.getXButtonPressed() && currentHeight >=0) {
+                currentHeight--;
+            }
+        }
+
+        if(mainJoystick != null && mainJoystick.isConnected() && secondaryJoystick != null && secondaryJoystick.isConnected()) {
+            if(secondaryJoystick.getRawButtonPressed(4) && currentHeight <= 3) {
+                currentHeight++;
+            } else if(secondaryJoystick.getRawButtonPressed(3) && currentHeight >=0) {
+                currentHeight--;
+            }
+        } else if(mainJoystick != null && mainJoystick.isConnected()) {
+            if(mainJoystick.getRawButtonPressed(4) && currentHeight <= 3) {
+                currentHeight++;
+            } else if(mainJoystick.getRawButtonPressed(3) && currentHeight >=0) {
+                currentHeight--;
+            }
+        }
+
+
+
+        return liftHeights[currentHeight];
+    }
 
     /**
      * A function called every few seconds meant to detect when xbox controllers
