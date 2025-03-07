@@ -200,32 +200,85 @@ public class InputSubsystem extends SubsystemBase {
             Constants.ArmConstants.LIFT_HEIGHT_3};
         
 
-
         if(xboxController != null &&xboxController.isConnected() == true) {
-            if(xboxController.getBButtonPressed() && currentHeight <= 3) {
+            if(xboxController.getBButtonPressed() && currentHeight <= liftHeights.length) {
                 currentHeight++;
-            } else if(xboxController.getXButtonPressed() && currentHeight >=0) {
+            } else if(xboxController.getAButtonPressed() && currentHeight >= 0) {
                 currentHeight--;
             }
         }
 
         if(mainJoystick != null && mainJoystick.isConnected() && secondaryJoystick != null && secondaryJoystick.isConnected()) {
-            if(secondaryJoystick.getRawButtonPressed(4) && currentHeight <= 3) {
+            if(secondaryJoystick.getRawButtonPressed(6) && currentHeight <= liftHeights.length) {
                 currentHeight++;
-            } else if(secondaryJoystick.getRawButtonPressed(3) && currentHeight >=0) {
+            } else if(secondaryJoystick.getRawButtonPressed(4) && currentHeight >= 0) {
                 currentHeight--;
             }
         } else if(mainJoystick != null && mainJoystick.isConnected()) {
-            if(mainJoystick.getRawButtonPressed(4) && currentHeight <= 3) {
+            if(mainJoystick.getRawButtonPressed(6) && currentHeight <= liftHeights.length) {
                 currentHeight++;
-            } else if(mainJoystick.getRawButtonPressed(3) && currentHeight >=0) {
+            } else if(mainJoystick.getRawButtonPressed(4) && currentHeight >= 0) {
                 currentHeight--;
             }
         }
 
-
-
         return liftHeights[currentHeight];
+    }
+
+    /**
+     * This is a separte method of controlling the lift of the ArmSubsystem.
+     * It will move the lift at a constant speed as long as the player is holding down the desired movement button.
+     * The speed of the lift is dependent on the constant LIFT_SPEED in Constants.java.
+     */
+    public double getArmMovement() {
+        if(xboxController != null &&xboxController.isConnected() == true) {
+            if(xboxController.getPOV() > -10 && xboxController.getPOV() < 10) {
+                return Constants.ArmConstants.LIFT_SPEED;
+            } else if (xboxController.getPOV() > 170 && xboxController.getPOV() < 190) {
+                return Constants.ArmConstants.LIFT_SPEED * -1;
+            }
+        }
+
+        if(mainJoystick != null && mainJoystick.isConnected() && secondaryJoystick != null && secondaryJoystick.isConnected()) {
+            if(secondaryJoystick.getRawButtonPressed(5)) {
+                return Constants.ArmConstants.LIFT_SPEED;
+            } else if(secondaryJoystick.getRawButtonPressed(3)) {
+                return Constants.ArmConstants.LIFT_SPEED * -1;
+            }
+        } else if(mainJoystick != null && mainJoystick.isConnected()) {
+            if(mainJoystick.getRawButtonPressed(5)) {
+                return Constants.ArmConstants.LIFT_SPEED;
+            } else if(mainJoystick.getRawButtonPressed(3)) {
+                return Constants.ArmConstants.LIFT_SPEED * -1;
+            }
+        }
+
+        return 0;
+    }
+
+
+    /**
+     * Returns whether or not the coral flywheels should be moving based on whether or not the player
+     * is pressing the right trigger/right bumper button.
+     */
+    public boolean isCoralIntakeActivated() {
+        if(xboxController != null &&xboxController.isConnected() == true) {
+            if(xboxController.getRightBumperButton()) {
+                return true;
+            }
+        }
+
+        if(mainJoystick != null && mainJoystick.isConnected() && secondaryJoystick != null && secondaryJoystick.isConnected()) {
+            if(secondaryJoystick.getTrigger()) {
+                return true;
+            } 
+        } else if(mainJoystick != null && mainJoystick.isConnected()) {
+            if(mainJoystick.getTrigger()) {
+                return true;      
+            }
+        }
+
+        return false;
     }
 
     /**
