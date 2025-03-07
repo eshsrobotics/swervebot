@@ -24,6 +24,7 @@ import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.*;
@@ -111,15 +112,15 @@ public class DriveSubsystem extends SubsystemBase {
         canShuffleBoardActuate = false;
         switch (driveType) {
             case DIFFERENTIAL_DRIVE: {
-                final int FRONT_LEFT = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.FRONT_LEFT.label;
-                final int FRONT_RIGHT = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.FRONT_RIGHT.label;
-                final int BACK_RIGHT = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.BACK_RIGHT.label;
-                final int BACK_LEFT = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.BACK_LEFT.label;
+                final int FRONT_LEFT_ID = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.FRONT_LEFT.label;
+                final int FRONT_RIGHT_ID = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.FRONT_RIGHT.label;
+                final int BACK_RIGHT_ID = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.BACK_RIGHT.label;
+                final int BACK_LEFT_ID = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.BACK_LEFT.label;
                 differentialDriveMotors = Arrays.asList(new SparkMax[] {
-                    new SparkMax(FRONT_RIGHT, MotorType.kBrushed),
-                    new SparkMax(BACK_RIGHT, MotorType.kBrushed),
-                    new SparkMax(BACK_LEFT, MotorType.kBrushed),
-                    new SparkMax(FRONT_LEFT, MotorType.kBrushed)
+                    new SparkMax(FRONT_RIGHT_ID, MotorType.kBrushed),
+                    new SparkMax(BACK_RIGHT_ID, MotorType.kBrushed),
+                    new SparkMax(BACK_LEFT_ID, MotorType.kBrushed),
+                    new SparkMax(FRONT_LEFT_ID, MotorType.kBrushed)
                 });
 
                 // We are using two different Configs for the left and right
@@ -130,14 +131,14 @@ public class DriveSubsystem extends SubsystemBase {
                 commonConfig.idleMode(IdleMode.kBrake);
                 SparkMaxConfig leftConfig = new SparkMaxConfig();
                 SparkMaxConfig rightConfig = new SparkMaxConfig();
-                leftConfig.follow(FRONT_LEFT).apply(commonConfig);
-                rightConfig.follow(FRONT_RIGHT).apply(commonConfig);
-                differentialDriveMotors.get(FRONT_LEFT).configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-                differentialDriveMotors.get(BACK_LEFT).configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-                differentialDriveMotors.get(FRONT_RIGHT).configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-                differentialDriveMotors.get(BACK_RIGHT).configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-                differentialDrive = new DifferentialDrive(differentialDriveMotors.get(FRONT_LEFT),
-                                                          differentialDriveMotors.get(FRONT_RIGHT));
+                leftConfig.follow(FRONT_LEFT_ID).apply(commonConfig);
+                rightConfig.follow(FRONT_RIGHT_ID).apply(commonConfig);
+                differentialDriveMotors.get(DriveConstants.WheelIndex.FRONT_LEFT.label).configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                differentialDriveMotors.get(DriveConstants.WheelIndex.BACK_LEFT.label).configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                differentialDriveMotors.get(DriveConstants.WheelIndex.FRONT_RIGHT.label).configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                differentialDriveMotors.get(DriveConstants.WheelIndex.BACK_RIGHT.label).configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                differentialDrive = new DifferentialDrive(differentialDriveMotors.get(FRONT_LEFT_ID),
+                                                          differentialDriveMotors.get(FRONT_RIGHT_ID));
                 break;
             }
             case SWERVE_DRIVE: {
@@ -190,6 +191,7 @@ public class DriveSubsystem extends SubsystemBase {
                 break;
             }
         }
+        SmartDashboard.putData(this);
     }
 
     private static double getConversionFactor() {
@@ -216,6 +218,8 @@ public class DriveSubsystem extends SubsystemBase {
      */
     @Override
     public void initSendable(SendableBuilder builder) {
+        super.initSendable(builder);
+        System.out.printf("initalizing shuffleboard");
         TriConsumer<List<SparkMax>, String, WheelIndex> addMotorHelper = (motors, name, index) -> {
             builder.addDoubleProperty(name,
                                       () -> motors.get(index.label).get(),
@@ -251,7 +255,6 @@ public class DriveSubsystem extends SubsystemBase {
         }
         builder.setActuator(true);
         builder.setSafeState(this::disable);
-        initSendable(builder);
     }
 
     /**
@@ -277,8 +280,10 @@ public class DriveSubsystem extends SubsystemBase {
      * or according to the current trajectory (during autonomous).
      */
     public void periodic() {
+            SmartDashboard.putNumber("hi", 1);
         switch (driveType) {
             case DIFFERENTIAL_DRIVE:
+            
 
                 // If the joystick is being moved, then the shuffleboard will be
                 // prevented from setting anything. This is to prevent the
