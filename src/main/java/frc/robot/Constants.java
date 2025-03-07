@@ -161,11 +161,20 @@ public final class Constants {
     // CAN IDs; this way, we can avoid any conflicts.
     public static final int LEFT_LIFT_CAN_ID = 20; 
     public static final int RIGHT_LIFT_CAN_ID = 21; 
-    public static final int LEFT_ALGAE_CAN_ID = 22; 
-    public static final int RIGHT_ALGAE_CAN_ID = 23; 
-    public static final int CORAL_INTAKE_CAN_ID = 24;
+    public static final int LEFT_CORAL_CAN_ID = 22; 
+    public static final int RIGHT_CORAL_CAN_ID = 23; 
+    public static final int ALGAE_INTAKE_CAN_ID = 24;
+    
+    /**
+     * The heights of each stage will be in terms of rotations, which need to updated with testing.
+     */
+    public static final double DEFAULT_HEIGHT = 0;
+    public static final double LIFT_HEIGHT_1 = 1;
+    public static final double LIFT_HEIGHT_2 = 2;
+    public static final double LIFT_HEIGHT_3 = 3;
 
-    public static final double LIFT_SPEED = 0;
+    public static final double LIFT_SPEED = 1.0;
+    public static final double CORAL_INTAKE_SPEED = 0.3;
   }
 
 }
