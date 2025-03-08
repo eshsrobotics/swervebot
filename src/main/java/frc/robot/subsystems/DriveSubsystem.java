@@ -1,11 +1,7 @@
 package frc.robot.subsystems;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.BiConsumer;
-
-import javax.lang.model.util.ElementScanner14;
 
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.revrobotics.spark.SparkMax;
@@ -22,9 +18,6 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.motorcontrol.PWMMotorController;
-import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.*;
@@ -91,7 +84,7 @@ public class DriveSubsystem extends SubsystemBase {
      * for each pivot motor. We'll use the CANCoder's absolute angle as the measurement.
      */
     private List<PIDController> pivotMotorPIDControllers;
-    
+
     /**
      * Determines whether or not the shuffle board values should affect the wheels
      * of the robot based on if the joystick is being moved.
@@ -283,7 +276,7 @@ public class DriveSubsystem extends SubsystemBase {
             SmartDashboard.putNumber("hi", 1);
         switch (driveType) {
             case DIFFERENTIAL_DRIVE:
-            
+
 
                 // If the joystick is being moved, then the shuffleboard will be
                 // prevented from setting anything. This is to prevent the
@@ -292,8 +285,14 @@ public class DriveSubsystem extends SubsystemBase {
                 if (input.getForwardBack() != 0 || input.getTurn() != 0) {
                     differentialDrive.arcadeDrive(input.getForwardBack(), input.getTurn());
                     canShuffleBoardActuate = false;
-                } else if (!canShuffleBoardActuate) { 
+                } else if (!canShuffleBoardActuate) {
                     differentialDrive.arcadeDrive(0, 0);
+                } else {
+                    // canShuffleBoardActuate is true and the driver is not
+                    // touching the controls.  Therefore, do _nothing_; this
+                    // will permit motor values that were set in the
+                    // shuffleboard to 'escape' into the actual robot without
+                    // being overwritten.
                 }
                 break;
             case SWERVE_DRIVE:
