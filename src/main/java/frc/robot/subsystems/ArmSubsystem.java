@@ -13,13 +13,14 @@ import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.DriveConstants.WheelIndex;
 
 public class ArmSubsystem extends SubsystemBase {
 
-    private InputSubsystem input; 
+    private InputSubsystem input;
 
     /**
      * Controls the left motor of the 4 bar lift.
@@ -27,16 +28,16 @@ public class ArmSubsystem extends SubsystemBase {
     private SparkMax LeftLift;
 
     /**
-     * Controls the right motor of the 4 bar lift, which will be 
+     * Controls the right motor of the 4 bar lift, which will be
      * a follower to move both of the motors simultaneously.
      */
     private SparkMax RightLift;
-    
+
     /**
      * Left coral intake motor.
      */
     private SparkMax LeftCoral;
-    
+
     /**
      * Right coral intake motor. Similar to the lift motors,
      * this will be a follower of the left coral intake motor.
@@ -48,6 +49,10 @@ public class ArmSubsystem extends SubsystemBase {
 
     private SparkClosedLoopController pidController;
 
+    private double armSpeed;
+
+    private boolean isOuttaking;
+
     public ArmSubsystem(InputSubsystem inputSubsystem) {
         input = inputSubsystem;
         LeftLift = new SparkMax(Constants.ArmConstants.LEFT_LIFT_CAN_ID, MotorType.kBrushless);
@@ -58,9 +63,9 @@ public class ArmSubsystem extends SubsystemBase {
         leftLiftEncoder = LeftLift.getEncoder();
 
         pidController = LeftLift.getClosedLoopController();
-        
+
         // The idle mode of the coral intake and lift motors are set to brake to prevent them from
-        // continuing to move after the movement is halted. The algae config idle mode is set to 
+        // continuing to move after the movement is halted. The algae config idle mode is set to
         // coast due to the motors being in control of flywheels, meaning that the flywheels will
         // slowly spin to a halt rather than fully stopping immediately.
         SparkMaxConfig liftConfig = new SparkMaxConfig();
@@ -71,6 +76,9 @@ public class ArmSubsystem extends SubsystemBase {
         SparkMaxConfig coralConfig = new SparkMaxConfig();
         coralConfig.idleMode(IdleMode.kBrake);
 
+        // Assumption: when we configure both motors, only the follower will
+        // become inverted to the inverted flag, meaning we hopefully shouldn't
+        // have any issues spinning the motors in opposite directions.
         liftConfig.follow(Constants.ArmConstants.LEFT_LIFT_CAN_ID, true);
         coralConfig.follow(Constants.ArmConstants.LEFT_CORAL_CAN_ID, true);
 
@@ -79,10 +87,49 @@ public class ArmSubsystem extends SubsystemBase {
         LeftCoral.configure(coralConfig, com.revrobotics.spark.SparkBase.ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         RightCoral.configure(coralConfig, com.revrobotics.spark.SparkBase.ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
-    
-    @Override
-    public void initSendable(SendableBuilder builder) {
 
+
+
+    @Override
+    public void periodic() {
+        if (DriverStation.isTeleopEnabled()) {
+            this.moveArm(input.getArmMovement());
+            this.spinOuttake(input.isCoralIntakeActivated());
+        }
+        if (isOuttaking) {
+            LeftCoral.set(Constants.ArmConstants.CORAL_INTAKE_SPEED);
+        }
+
+        // Move the arm according to input from teleop or autonomous.
+        if (Math.abs(armSpeed) >= Constants.MathConstants.EPSILON) {
+            LeftLift.set(armSpeed);
+        } else {
+            LeftLift.stopMotor();
+        }
+    }
+
+    /**
+     * Moves the arm by the specified speed.
+     *
+     * @param speed The arm's speed as percentage between -1.0 (full speed
+       down) and +1.0 (full speed up.) 0 stops the arm from moving.
+    */
+    public void moveArm(double speed) {
+        armSpeed = speed;
+    }
+
+    /**
+     * Spins the outtake.
+     *
+     * @param speed The outtake speed as a percentage between 0 and 1.0.
+     * Negative values are ignored.
+    */
+   public void spinOuttake(boolean active) {
+        isOuttaking = active;
+   }
+
+   @Override
+   public void initSendable(SendableBuilder builder) {
         // The RightMotor are always having the same speed as the left motors
         // as they are following them. As such, we only get the speed of the
         // leader, the LeftMotor. The right motor will be spinning in the opposite direction though.
@@ -91,13 +138,4 @@ public class ArmSubsystem extends SubsystemBase {
         initSendable(builder);
     }
 
-    @Override
-    public void periodic() {
-        //pidController.setReference(input.getDesiredPosition(), ControlType.kPosition); --> possible other control scheme
-        LeftLift.set(input.getArmMovement());
-        if (input.isCoralIntakeActivated()) {
-            LeftCoral.set(Constants.ArmConstants.CORAL_INTAKE_SPEED);
-        }
-    }
-    
 }

@@ -182,23 +182,24 @@ public class InputSubsystem extends SubsystemBase {
     }
 
     /**
+     * THIS IS OBSOLETE. WE WILL NOT BE USING THIS AT COMP.
      * A function to return the number of desired rotations of the lift motors based on user input.
      * - Stage 0 represents base height of the lift when idle, which is equal to the height of the trough.
-     * - Each additional stage (up to the top) represents the next level of the coral branch. 
+     * - Each additional stage (up to the top) represents the next level of the coral branch.
      *   - Lift stage 1 -> coral level 2
      *   - Lift stage 2 ->  coral level 3
      *   - Lift stage 3 -> coral level 4
-     * 
-     * - Each time the user presses one of the lift triggering buttons, 
+     *
+     * - Each time the user presses one of the lift triggering buttons,
      *   the lift will automatically transition between the stages.
      */
     public double getDesiredPosition() {
         double[] liftHeights = {
             Constants.ArmConstants.DEFAULT_HEIGHT,
-            Constants.ArmConstants.LIFT_HEIGHT_1, 
+            Constants.ArmConstants.LIFT_HEIGHT_1,
             Constants.ArmConstants.LIFT_HEIGHT_2,
             Constants.ArmConstants.LIFT_HEIGHT_3};
-        
+
 
         if(xboxController != null &&xboxController.isConnected() == true) {
             if(xboxController.getBButtonPressed() && currentHeight <= liftHeights.length) {
@@ -232,7 +233,7 @@ public class InputSubsystem extends SubsystemBase {
      */
     public double getArmMovement() {
         if(xboxController != null &&xboxController.isConnected() == true) {
-            if(xboxController.getPOV() > -10 && xboxController.getPOV() < 10) {
+            if (xboxController.getPOV() > -10 && xboxController.getPOV() < 10) {
                 return Constants.ArmConstants.LIFT_SPEED;
             } else if (xboxController.getPOV() > 170 && xboxController.getPOV() < 190) {
                 return Constants.ArmConstants.LIFT_SPEED * -1;
@@ -271,10 +272,10 @@ public class InputSubsystem extends SubsystemBase {
         if(mainJoystick != null && mainJoystick.isConnected() && secondaryJoystick != null && secondaryJoystick.isConnected()) {
             if(secondaryJoystick.getTrigger()) {
                 return true;
-            } 
+            }
         } else if(mainJoystick != null && mainJoystick.isConnected()) {
             if(mainJoystick.getTrigger()) {
-                return true;      
+                return true;
             }
         }
 

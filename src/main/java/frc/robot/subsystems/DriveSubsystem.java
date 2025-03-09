@@ -12,11 +12,13 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -91,6 +93,10 @@ public class DriveSubsystem extends SubsystemBase {
      * of the robot based on if the joystick is being moved.
      */
     private boolean canShuffleBoardActuate;
+
+    private double clampedXAxis;
+    private double clampedYAxis;
+    private double clampedTurn;
 
     /**
      * Intended to be owned by the RobotContainer and to be used by
@@ -270,31 +276,68 @@ public class DriveSubsystem extends SubsystemBase {
     }
 
     /**
+     * Drive the robot according to the given speeds.
+     *
+     * @param xAxis The speed at which the robot should move left or right. 1.0
+     * should be full speed to the right and -1.0 should be full speed to the
+     * left.
+     * @param yAxis The speed at which the robot should move forward or
+     * backward. A value of 1.0 means full speed forward and -1.0 means full
+     * speed backward.
+     * @param turn The speed at which the robot should turn (1.0 is full speed
+     * clockwise and -1.0 is full speed counterclockwise.
+     */
+    public void drive(double xAxis, double yAxis, double turn) {
+        clampedXAxis = MathUtil.clamp(xAxis, -1.0, 1.0);
+        clampedYAxis = MathUtil.clamp(yAxis, -1.0, 1.0);
+        clampedTurn = MathUtil.clamp(turn, -1.0, 1.0);
+    }
+
+    /**
      * Update the position of the drive according to human input (during teleop)
      * or according to the current trajectory (during autonomous).
      */
     public void periodic() {
-            SmartDashboard.putNumber("hi", 1);
         switch (driveType) {
             case DIFFERENTIAL_DRIVE:
-
 
                 // If the joystick is being moved, then the shuffleboard will be
                 // prevented from setting anything. This is to prevent the
                 // problem of the arcadeDrive() overriding the values that the
                 // shuffleboard sets.
-                if (input.getForwardBack() != 0 || input.getTurn() != 0) {
-                    differentialDrive.arcadeDrive(input.getForwardBack(), input.getTurn());
-                    canShuffleBoardActuate = false;
-                } else if (!canShuffleBoardActuate) {
-                    differentialDrive.arcadeDrive(0, 0);
+                if (DriverStation.isTeleopEnabled()) {
+                    if (input.getForwardBack() != 0 || input.getTurn() != 0) {
+                        this.drive(input.getLeftRight(), input.getForwardBack(), input.getTurn());
+                        canShuffleBoardActuate = false;
+                    } else if (!canShuffleBoardActuate) {
+                        this.drive(0, 0, 0);
+                    } else {
+                        // canShuffleBoardActuate is true and the driver is not
+                        // touching the controls.  Therefore, do _nothing_; this
+                        // will permit motor values that were set in the
+                        // shuffleboard to 'escape' into the actual robot without
+                        // being overwritten.
+                    }
                 } else {
-                    // canShuffleBoardActuate is true and the driver is not
-                    // touching the controls.  Therefore, do _nothing_; this
-                    // will permit motor values that were set in the
-                    // shuffleboard to 'escape' into the actual robot without
-                    // being overwritten.
+                    // control makes it here if we're either in autonomous or
+                    // testing with shuffleboard.
                 }
+
+                // We have this if statement for a reason. It is here because if teleop isn't
+                // enabled (autonomous or test), then the code will automatically exit
+                // everything above. If we didn't have the code below inside the if statement,
+                // then arcadeDrive will be called regardless of what state the robot is in, and
+                // would override any values inputted into the shuffleboard.
+
+                if (!DriverStation.isTestEnabled()) {
+                    if (Math.abs(clampedYAxis) < Constants.MathConstants.EPSILON &&
+                        Math.abs(clampedTurn) < Constants.MathConstants.EPSILON) {
+                        differentialDrive.arcadeDrive(0.0, 0.0);
+                    } else {
+                        differentialDrive.arcadeDrive(clampedYAxis, clampedTurn);
+                    }
+                }
+
                 break;
             case SWERVE_DRIVE:
                 // Convert the human input into a ChassisSpeeds object giving us

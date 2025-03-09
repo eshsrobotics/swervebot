@@ -134,7 +134,7 @@ public final class Constants {
      *  </ol>
      * This will give us a way to predict the correct CANCoder behind any CAN ID
      * we see.
-     * 
+     *
      */
     public static final int PIVOT_MOTOR_CAN_CODER_CAN_ID_OFFSET = 9;
 
@@ -147,11 +147,11 @@ public final class Constants {
     public static final double PIVOT_MOTOR_D = 0;
 
 
-    
+
   }
 
   public static class ArmConstants {
-    
+
     /******************************
     * CAN IDS FOR THE ARM MOTORS *
     ******************************/
@@ -159,12 +159,12 @@ public final class Constants {
     // The Pivot Motor CAN IDs are between 9 and 12. As such, we set the arm
     // motor IDs to very large values so we will have a large buffer between the
     // CAN IDs; this way, we can avoid any conflicts.
-    public static final int LEFT_LIFT_CAN_ID = 20; 
-    public static final int RIGHT_LIFT_CAN_ID = 21; 
-    public static final int LEFT_CORAL_CAN_ID = 22; 
-    public static final int RIGHT_CORAL_CAN_ID = 23; 
+    public static final int LEFT_LIFT_CAN_ID = 20;
+    public static final int RIGHT_LIFT_CAN_ID = 21;
+    public static final int LEFT_CORAL_CAN_ID = 22;
+    public static final int RIGHT_CORAL_CAN_ID = 23;
     public static final int ALGAE_INTAKE_CAN_ID = 24;
-    
+
     /**
      * The heights of each stage will be in terms of rotations, which need to updated with testing.
      */
@@ -177,4 +177,7 @@ public final class Constants {
     public static final double CORAL_INTAKE_SPEED = 0.3;
   }
 
+  public static class MathConstants {
+    public static final double EPSILON = 1e-5;
+  }
 }
