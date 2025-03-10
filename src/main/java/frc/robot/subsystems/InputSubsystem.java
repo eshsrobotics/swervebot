@@ -227,7 +227,7 @@ public class InputSubsystem extends SubsystemBase {
     }
 
     /**
-     * This is a separte method of controlling the lift of the ArmSubsystem.
+     * This is a separate method of controlling the lift of the ArmSubsystem.
      * It will move the lift at a constant speed as long as the player is holding down the desired movement button.
      * The speed of the lift is dependent on the constant LIFT_SPEED in Constants.java.
      */

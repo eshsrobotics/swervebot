@@ -93,7 +93,7 @@ public class ArmSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         if (DriverStation.isTeleopEnabled()) {
-            this.moveArm(input.getArmMovement());
+            this.setArmSpeed(input.getArmMovement());
             this.spinOuttake(input.isCoralIntakeActivated());
         }
         if (isOuttaking) {
@@ -114,7 +114,7 @@ public class ArmSubsystem extends SubsystemBase {
      * @param speed The arm's speed as percentage between -1.0 (full speed
        down) and +1.0 (full speed up.) 0 stops the arm from moving.
     */
-    public void moveArm(double speed) {
+    public void setArmSpeed(double speed) {
         armSpeed = speed;
     }
 
