@@ -64,28 +64,41 @@ public class ArmSubsystem extends SubsystemBase {
 
         pidController = LeftLift.getClosedLoopController();
 
-        // The idle mode of the coral intake and lift motors are set to brake to prevent them from
-        // continuing to move after the movement is halted. The algae config idle mode is set to
-        // coast due to the motors being in control of flywheels, meaning that the flywheels will
-        // slowly spin to a halt rather than fully stopping immediately.
-        SparkMaxConfig liftConfig = new SparkMaxConfig();
-        liftConfig.idleMode(IdleMode.kBrake);
-        liftConfig.closedLoop.pid(0.1, 0, 0);
-        liftConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
+        // The idle mode of the coral intake and lift motors are set to brake
+        // to prevent them from continuing to move after the movement is
+        // halted.
+        SparkMaxConfig commmonLiftConfig = new SparkMaxConfig();
+        commmonLiftConfig.idleMode(IdleMode.kBrake);
 
-        SparkMaxConfig coralConfig = new SparkMaxConfig();
-        coralConfig.idleMode(IdleMode.kBrake);
+        // UA: This PID tuning was more useful before the decision on
+        // 2025-03-10 to not do elevator positions on the lift.  Right now we
+        // just go up/down and the driver eyeballs the stopping point, which
+        // doesn't require encoder feedback.
+        //
+        // Maybe later.
+        commmonLiftConfig.closedLoop.pid(0.1, 0, 0);
+        commmonLiftConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
 
-        // Assumption: when we configure both motors, only the follower will
-        // become inverted to the inverted flag, meaning we hopefully shouldn't
-        // have any issues spinning the motors in opposite directions.
-        liftConfig.follow(Constants.ArmConstants.LEFT_LIFT_CAN_ID, true);
-        coralConfig.follow(Constants.ArmConstants.LEFT_CORAL_CAN_ID, true);
+        // The algae^H^H^H^H^Hcoral config idle mode is set to coast due to
+        // the motors being in control of flywheels, meaning that the
+        // flywheels will slowly spin to a halt rather than fully stopping
+        // immediately.
+        SparkMaxConfig commonCoralFlywheelConfig = new SparkMaxConfig();
+        commonCoralFlywheelConfig.idleMode(IdleMode.kCoast);
 
-        LeftLift.configure(liftConfig, com.revrobotics.spark.SparkBase.ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        RightLift.configure(liftConfig, com.revrobotics.spark.SparkBase.ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        LeftCoral.configure(coralConfig, com.revrobotics.spark.SparkBase.ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        RightCoral.configure(coralConfig, com.revrobotics.spark.SparkBase.ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        // Create separate config objects for one side of the lift/flywheen so
+        // that they will follow the other side...in reverse.  (Motors on
+        // opposite sides spinning in the same direction will shoot coral at
+        // weird angles and wreck the arm lift.)
+        var rightLiftConfig = new SparkMaxConfig();
+        rightLiftConfig.follow(LeftLift, true);
+        var rightCoralFlywheelConfig = new SparkMaxConfig();
+        rightCoralFlywheelConfig.follow(LeftCoral, true);
+
+        LeftLift.configure(commmonLiftConfig, com.revrobotics.spark.SparkBase.ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        RightLift.configure(rightLiftConfig, com.revrobotics.spark.SparkBase.ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        LeftCoral.configure(commonCoralFlywheelConfig, com.revrobotics.spark.SparkBase.ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        RightCoral.configure(rightCoralFlywheelConfig, com.revrobotics.spark.SparkBase.ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
 
