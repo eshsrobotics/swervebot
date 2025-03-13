@@ -84,10 +84,10 @@ public final class Constants {
      * <p> This list will be null if we are using a differential drive. </p>
      */
     public enum WheelIndex {
-        FRONT_LEFT(0),
-        FRONT_RIGHT(1),
-        BACK_RIGHT(2),
-        BACK_LEFT(3);
+        FRONT_LEFT(2),
+        FRONT_RIGHT(3),
+        BACK_RIGHT(0),
+        BACK_LEFT(1);
 
         public final int label;
 
@@ -163,7 +163,6 @@ public final class Constants {
     public static final int RIGHT_LIFT_CAN_ID = 21;
     public static final int LEFT_CORAL_CAN_ID = 22;
     public static final int RIGHT_CORAL_CAN_ID = 23;
-    public static final int ALGAE_INTAKE_CAN_ID = 24;
 
     /**
      * The heights of each stage will be in terms of rotations, which need to updated with testing.
@@ -173,7 +172,7 @@ public final class Constants {
     public static final double LIFT_HEIGHT_2 = 2;
     public static final double LIFT_HEIGHT_3 = 3;
 
-    public static final double LIFT_SPEED = 1.0;
+    public static final double LIFT_SPEED = 0.8;
     public static final double CORAL_INTAKE_SPEED = 0.3;
   }
 

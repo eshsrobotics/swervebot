@@ -34,6 +34,7 @@ public class DriveSubsystem extends SubsystemBase {
     private double maxTurnSpeed;
     private DriveType driveType;
     private DifferentialDrive differentialDrive;
+    private DifferentialDrive followDifferentialDrive;
 
     /**
      * <p> The list of PWM Spark Max motor controllers controlling the differential
@@ -97,6 +98,8 @@ public class DriveSubsystem extends SubsystemBase {
     private double clampedXAxis;
     private double clampedYAxis;
     private double clampedTurn;
+    private double currentYAxis;
+    private double currentTurn;
 
     /**
      * Intended to be owned by the RobotContainer and to be used by
@@ -129,16 +132,29 @@ public class DriveSubsystem extends SubsystemBase {
                 // will be moving in the opposite directions.
                 SparkMaxConfig commonConfig = new SparkMaxConfig();
                 commonConfig.idleMode(IdleMode.kBrake);
-                SparkMaxConfig leftConfig = new SparkMaxConfig();
-                SparkMaxConfig rightConfig = new SparkMaxConfig();
-                leftConfig.follow(FRONT_LEFT_ID).apply(commonConfig);
-                rightConfig.follow(FRONT_RIGHT_ID).apply(commonConfig);
-                differentialDriveMotors.get(DriveConstants.WheelIndex.FRONT_LEFT.label).configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-                differentialDriveMotors.get(DriveConstants.WheelIndex.BACK_LEFT.label).configure(leftConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-                differentialDriveMotors.get(DriveConstants.WheelIndex.FRONT_RIGHT.label).configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-                differentialDriveMotors.get(DriveConstants.WheelIndex.BACK_RIGHT.label).configure(rightConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-                differentialDrive = new DifferentialDrive(differentialDriveMotors.get(FRONT_LEFT_ID),
-                                                          differentialDriveMotors.get(FRONT_RIGHT_ID));
+                SparkMaxConfig leftFollowerConfig = new SparkMaxConfig();
+                SparkMaxConfig rightFollowerConfig = new SparkMaxConfig();
+                
+                SparkMaxConfig tempConfig = new SparkMaxConfig();
+                tempConfig.idleMode(IdleMode.kBrake);
+                tempConfig.inverted(true);
+
+                leftFollowerConfig.follow(FRONT_LEFT_ID, true).apply(commonConfig);
+                rightFollowerConfig.follow(FRONT_RIGHT_ID).apply(commonConfig);
+                differentialDriveMotors.get(2).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                differentialDriveMotors.get(3).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                differentialDriveMotors.get(0).configure(tempConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                differentialDriveMotors.get(1).configure(tempConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+                // differentialDriveMotors.get(DriveConstants.WheelIndex.FRONT_LEFT.label).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                // differentialDriveMotors.get(DriveConstants.WheelIndex.BACK_LEFT.label).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                // differentialDriveMotors.get(DriveConstants.WheelIndex.FRONT_RIGHT.label).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                // differentialDriveMotors.get(DriveConstants.WheelIndex.BACK_RIGHT.label).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                
+                differentialDrive = new DifferentialDrive(differentialDriveMotors.get(2),
+                                                          differentialDriveMotors.get(0));
+                followDifferentialDrive = new DifferentialDrive(differentialDriveMotors.get(3),
+                                                                differentialDriveMotors.get(1));
                 break;
             }
             case SWERVE_DRIVE: {
@@ -289,8 +305,8 @@ public class DriveSubsystem extends SubsystemBase {
      */
     public void drive(double xAxis, double yAxis, double turn) {
         clampedXAxis = MathUtil.clamp(xAxis, -1.0, 1.0);
-        clampedYAxis = MathUtil.clamp(yAxis, -1.0, 1.0);
-        clampedTurn = MathUtil.clamp(turn, -1.0, 1.0);
+        clampedYAxis = MathUtil.clamp(yAxis, -0.8, 0.8);
+        clampedTurn = MathUtil.clamp(turn, -0.5, 0.5);
     }
 
     /**
@@ -300,13 +316,13 @@ public class DriveSubsystem extends SubsystemBase {
     public void periodic() {
         switch (driveType) {
             case DIFFERENTIAL_DRIVE:
-
                 // If the joystick is being moved, then the shuffleboard will be
                 // prevented from setting anything. This is to prevent the
                 // problem of the arcadeDrive() overriding the values that the
                 // shuffleboard sets.
                 if (DriverStation.isTeleopEnabled()) {
                     if (input.getForwardBack() != 0 || input.getTurn() != 0) {
+                        System.out.println(input.getForwardBack());
                         this.drive(input.getLeftRight(), input.getForwardBack(), input.getTurn());
                         canShuffleBoardActuate = false;
                     } else if (!canShuffleBoardActuate) {
@@ -333,11 +349,32 @@ public class DriveSubsystem extends SubsystemBase {
                     if (Math.abs(clampedYAxis) < Constants.MathConstants.EPSILON &&
                         Math.abs(clampedTurn) < Constants.MathConstants.EPSILON) {
                         differentialDrive.arcadeDrive(0.0, 0.0);
+                        followDifferentialDrive.arcadeDrive(0.0, 0.0);
+                        System.out.println("stopped.");
                     } else {
-                        differentialDrive.arcadeDrive(clampedYAxis, clampedTurn);
+                        // Limit the amount that the yAxis and turn values are changed
+                        // by calculating the difference between the target value, clampedYAxis
+                        // and the current value, currentYAxis. Then clamping the difference to
+                        // a threshold and adding the clamped difference to the current value.
+                        double diffYAxis = clampedYAxis - currentYAxis;
+                        diffYAxis = MathUtil.clamp(diffYAxis, -0.05, 0.05);
+                        currentYAxis += diffYAxis;
+                        
+                        double diffTurn = clampedTurn - currentTurn;
+                        diffTurn = MathUtil.clamp(diffTurn, -0.25, 0.25);
+                        currentTurn += diffTurn;
+
+                        differentialDrive.arcadeDrive(currentYAxis, currentTurn);
+                        followDifferentialDrive.arcadeDrive(currentYAxis, currentTurn);
+                        System.out.println("y-axis: " + clampedYAxis + " turn: " + clampedTurn);
                     }
                 }
-
+                //differentialDriveMotors.get(2).set(0.2);
+                //differentialDriveMotors.get(3).set(0.2);
+                
+                // differentialDriveMotors.get(0).set(0.2);
+                // differentialDriveMotors.get(1).set(0.2);
+                
                 break;
             case SWERVE_DRIVE:
                 // Convert the human input into a ChassisSpeeds object giving us
