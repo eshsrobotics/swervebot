@@ -73,19 +73,24 @@ public class ArmSubsystem extends SubsystemBase {
         liftConfig.closedLoop.pid(0.1, 0, 0);
         liftConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
 
+        SparkMaxConfig followLiftConfig = new SparkMaxConfig();
+        followLiftConfig.follow(Constants.ArmConstants.LEFT_LIFT_CAN_ID).apply(liftConfig);
+        
+
         SparkMaxConfig coralConfig = new SparkMaxConfig();
         coralConfig.idleMode(IdleMode.kBrake);
 
-        // Assumption: when we configure both motors, only the follower will
-        // become inverted to the inverted flag, meaning we hopefully shouldn't
-        // have any issues spinning the motors in opposite directions.
-        liftConfig.follow(Constants.ArmConstants.LEFT_LIFT_CAN_ID, true);
-        coralConfig.follow(Constants.ArmConstants.LEFT_CORAL_CAN_ID, true);
+        SparkMaxConfig followCoralConfig = new SparkMaxConfig();
+        followCoralConfig.follow(Constants.ArmConstants.LEFT_CORAL_CAN_ID).apply(coralConfig);
+
+
+        followLiftConfig.follow(Constants.ArmConstants.LEFT_LIFT_CAN_ID, true);
+        followCoralConfig.follow(Constants.ArmConstants.LEFT_CORAL_CAN_ID, true);
 
         LeftLift.configure(liftConfig, com.revrobotics.spark.SparkBase.ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        RightLift.configure(liftConfig, com.revrobotics.spark.SparkBase.ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        RightLift.configure(followLiftConfig, com.revrobotics.spark.SparkBase.ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         LeftCoral.configure(coralConfig, com.revrobotics.spark.SparkBase.ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        RightCoral.configure(coralConfig, com.revrobotics.spark.SparkBase.ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        RightCoral.configure(followCoralConfig, com.revrobotics.spark.SparkBase.ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
 
@@ -98,6 +103,9 @@ public class ArmSubsystem extends SubsystemBase {
         }
         if (isOuttaking) {
             LeftCoral.set(Constants.ArmConstants.CORAL_INTAKE_SPEED);
+            System.out.println("Coral outtaking at " + Constants.ArmConstants.CORAL_INTAKE_SPEED * 100 + "%");
+        } else {
+            LeftCoral.set(0);
         }
 
         // Move the arm according to input from teleop or autonomous.
@@ -116,6 +124,7 @@ public class ArmSubsystem extends SubsystemBase {
     */
     public void setArmSpeed(double speed) {
         armSpeed = speed;
+        System.out.println("Moving arm at " + (speed * 100) + "%");
     }
 
     /**
