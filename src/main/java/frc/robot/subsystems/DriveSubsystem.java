@@ -135,16 +135,16 @@ public class DriveSubsystem extends SubsystemBase {
                 SparkMaxConfig leftFollowerConfig = new SparkMaxConfig();
                 SparkMaxConfig rightFollowerConfig = new SparkMaxConfig();
                 
-                SparkMaxConfig tempConfig = new SparkMaxConfig();
-                tempConfig.idleMode(IdleMode.kBrake);
-                tempConfig.inverted(true);
+                SparkMaxConfig followConfig = new SparkMaxConfig();
+                followConfig.idleMode(IdleMode.kBrake);
+                followConfig.inverted(true);
 
                 leftFollowerConfig.follow(FRONT_LEFT_ID, true).apply(commonConfig);
                 rightFollowerConfig.follow(FRONT_RIGHT_ID).apply(commonConfig);
                 differentialDriveMotors.get(2).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
                 differentialDriveMotors.get(3).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-                differentialDriveMotors.get(0).configure(tempConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-                differentialDriveMotors.get(1).configure(tempConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                differentialDriveMotors.get(0).configure(followConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                differentialDriveMotors.get(1).configure(followConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
                 // differentialDriveMotors.get(DriveConstants.WheelIndex.FRONT_LEFT.label).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
                 // differentialDriveMotors.get(DriveConstants.WheelIndex.BACK_LEFT.label).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -350,7 +350,7 @@ public class DriveSubsystem extends SubsystemBase {
                         Math.abs(clampedTurn) < Constants.MathConstants.EPSILON) {
                         differentialDrive.arcadeDrive(0.0, 0.0);
                         followDifferentialDrive.arcadeDrive(0.0, 0.0);
-                        System.out.println("stopped.");
+                        //System.out.println("stopped.");
                     } else {
                         // Limit the amount that the yAxis and turn values are changed
                         // by calculating the difference between the target value, clampedYAxis

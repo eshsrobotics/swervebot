@@ -19,7 +19,7 @@ public final class Autos {
 
   /** Drives for a certain number of seconds. */
   public static Command driveStraight(DriveSubsystem drive, double seconds) {
-    return new InstantCommand(() -> drive.drive(0.0, 1.0, 0.0))
+    return new InstantCommand(() -> drive.drive(0.0, 0.5, 0.0))
                .andThen(new WaitCommand(seconds))
                .andThen(() -> drive.drive(0.0, 0.0, 0.0));
   }

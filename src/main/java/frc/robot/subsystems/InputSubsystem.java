@@ -201,7 +201,7 @@ public class InputSubsystem extends SubsystemBase {
             Constants.ArmConstants.LIFT_HEIGHT_3};
 
 
-        if(xboxController != null &&xboxController.isConnected() == true) {
+        if(xboxController != null && xboxController.isConnected() == true) {
             if(xboxController.getBButtonPressed() && currentHeight <= liftHeights.length) {
                 currentHeight++;
             } else if(xboxController.getAButtonPressed() && currentHeight >= 0) {
@@ -232,11 +232,13 @@ public class InputSubsystem extends SubsystemBase {
      * The speed of the lift is dependent on the constant LIFT_SPEED in Constants.java.
      */
     public double getArmMovement() {
-        if(xboxController != null &&xboxController.isConnected() == true) {
-            if (xboxController.getPOV() > -10 && xboxController.getPOV() < 10) {
-                return Constants.ArmConstants.LIFT_SPEED;
-            } else if (xboxController.getPOV() > 170 && xboxController.getPOV() < 190) {
+        if(xboxController != null && xboxController.isConnected() == true) {
+            if (xboxController.getYButton()) {
                 return Constants.ArmConstants.LIFT_SPEED * -1;
+            } else if (xboxController.getAButton()) {
+                return Constants.ArmConstants.LIFT_SPEED;
+            } else {
+                return 0;
             }
         }
 
@@ -264,8 +266,10 @@ public class InputSubsystem extends SubsystemBase {
      */
     public boolean isCoralIntakeActivated() {
         if(xboxController != null &&xboxController.isConnected() == true) {
-            if(xboxController.getRightBumperButton()) {
+            if(xboxController.getBButton()) {
                 return true;
+            } else {
+                return false;
             }
         }
 
