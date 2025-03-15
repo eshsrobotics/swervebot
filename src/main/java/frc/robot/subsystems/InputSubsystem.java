@@ -234,6 +234,8 @@ public class InputSubsystem extends SubsystemBase {
     public double getArmMovement() {
         if(xboxController != null && xboxController.isConnected() == true) {
             if (xboxController.getYButton()) {
+                return Constants.ArmConstants.LIFT_SPEED;
+            } else if (xboxController.getAButton()) {
                 return Constants.ArmConstants.LIFT_SPEED * -1;
             } else if (xboxController.getAButton()) {
                 return Constants.ArmConstants.LIFT_SPEED;

@@ -74,7 +74,7 @@ public class ArmSubsystem extends SubsystemBase {
         liftConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
 
         SparkMaxConfig followLiftConfig = new SparkMaxConfig();
-        followLiftConfig.apply(liftConfig);
+        followLiftConfig.follow(Constants.ArmConstants.LEFT_LIFT_CAN_ID).apply(liftConfig);
         
 
         SparkMaxConfig coralConfig = new SparkMaxConfig();
@@ -82,6 +82,7 @@ public class ArmSubsystem extends SubsystemBase {
 
         SparkMaxConfig followCoralConfig = new SparkMaxConfig();
         followCoralConfig.follow(Constants.ArmConstants.LEFT_CORAL_CAN_ID).apply(coralConfig);
+
 
         followLiftConfig.follow(Constants.ArmConstants.LEFT_LIFT_CAN_ID, true);
         followCoralConfig.follow(Constants.ArmConstants.LEFT_CORAL_CAN_ID, true);
