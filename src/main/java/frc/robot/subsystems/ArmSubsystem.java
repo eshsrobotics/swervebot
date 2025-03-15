@@ -74,7 +74,7 @@ public class ArmSubsystem extends SubsystemBase {
         liftConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
 
         SparkMaxConfig followLiftConfig = new SparkMaxConfig();
-        followLiftConfig.follow(Constants.ArmConstants.LEFT_LIFT_CAN_ID).apply(liftConfig);
+        followLiftConfig.apply(liftConfig);
         
 
         SparkMaxConfig coralConfig = new SparkMaxConfig();
@@ -82,7 +82,6 @@ public class ArmSubsystem extends SubsystemBase {
 
         SparkMaxConfig followCoralConfig = new SparkMaxConfig();
         followCoralConfig.follow(Constants.ArmConstants.LEFT_CORAL_CAN_ID).apply(coralConfig);
-
 
         followLiftConfig.follow(Constants.ArmConstants.LEFT_LIFT_CAN_ID, true);
         followCoralConfig.follow(Constants.ArmConstants.LEFT_CORAL_CAN_ID, true);
@@ -123,7 +122,7 @@ public class ArmSubsystem extends SubsystemBase {
        down) and +1.0 (full speed up.) 0 stops the arm from moving.
     */
     public void setArmSpeed(double speed) {
-        //armSpeed = speed;
+        armSpeed = speed;
         System.out.println("Moving arm at " + (speed * 100) + "%");
     }
 

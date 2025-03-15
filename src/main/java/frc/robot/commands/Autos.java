@@ -4,6 +4,8 @@
 
 package frc.robot.commands;
 
+import frc.robot.Constants;
+import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ExampleSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -18,15 +20,17 @@ public final class Autos {
   }
 
   /** Drives for a certain number of seconds. */
-  public static Command driveStraight(DriveSubsystem drive, double seconds) {
+  public static Command driveStraight(DriveSubsystem drive, ArmSubsystem arm) {
     return new InstantCommand(() -> drive.drive(0.0, 0.5, 0.0))
-               .andThen(new WaitCommand(seconds))
-               .andThen(() -> drive.drive(0.0, 0.0, 0.0));
+               .andThen(new WaitCommand(1.5))
+               .andThen(() -> drive.drive(0.0, 0.0, 0.0))
+               .andThen(() -> arm.setArmSpeed(Constants.ArmConstants.LIFT_SPEED))
+               .andThen(new WaitCommand(0.5))
+               .andThen(() -> arm.setArmSpeed(0));
   }
 
   private Autos() {
     throw new UnsupportedOperationException("This is a utility class!");
   }
-
 
 }
