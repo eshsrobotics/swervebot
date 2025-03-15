@@ -76,16 +76,12 @@ public class ArmSubsystem extends SubsystemBase {
         SparkMaxConfig followLiftConfig = new SparkMaxConfig();
         followLiftConfig.follow(Constants.ArmConstants.LEFT_LIFT_CAN_ID).apply(liftConfig);
         
-
         SparkMaxConfig coralConfig = new SparkMaxConfig();
         coralConfig.idleMode(IdleMode.kBrake);
 
         SparkMaxConfig followCoralConfig = new SparkMaxConfig();
         followCoralConfig.follow(Constants.ArmConstants.LEFT_CORAL_CAN_ID).apply(coralConfig);
 
-
-        followLiftConfig.follow(Constants.ArmConstants.LEFT_LIFT_CAN_ID, true);
-        followCoralConfig.follow(Constants.ArmConstants.LEFT_CORAL_CAN_ID, true);
 
         LeftLift.configure(liftConfig, com.revrobotics.spark.SparkBase.ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         RightLift.configure(followLiftConfig, com.revrobotics.spark.SparkBase.ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
