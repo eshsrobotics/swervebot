@@ -9,6 +9,7 @@ import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.config.EncoderConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
@@ -17,6 +18,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -65,6 +67,15 @@ public class DriveSubsystem extends SubsystemBase {
      * <p> This list will be null if we are using a differential drive. </p>
      */
     private List<CANcoder> swerveCANCODER;
+
+    /**
+     * The swerve drive encoders are relative SparkMax encoders. We could have
+     * called the encoders from our list of SparkMaxes through calling
+     * {@link SparkBase.getEncoder}. However, we are not sure whether that method
+     * creates a new encoder each time or uses a static encoder. To be safe, we
+     * want to have a list of encoders that we know will be the same ones.
+     */
+    private List<RelativeEncoder> swerveDriveEncoders;
 
     /**
      * Our CANCoders measure absolute angles that don't change even when the
@@ -134,7 +145,7 @@ public class DriveSubsystem extends SubsystemBase {
                 commonConfig.idleMode(IdleMode.kBrake);
                 SparkMaxConfig leftFollowerConfig = new SparkMaxConfig();
                 SparkMaxConfig rightFollowerConfig = new SparkMaxConfig();
-                
+
                 SparkMaxConfig followConfig = new SparkMaxConfig();
                 followConfig.idleMode(IdleMode.kBrake);
                 followConfig.inverted(true);
@@ -150,7 +161,7 @@ public class DriveSubsystem extends SubsystemBase {
                 // differentialDriveMotors.get(DriveConstants.WheelIndex.BACK_LEFT.label).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
                 // differentialDriveMotors.get(DriveConstants.WheelIndex.FRONT_RIGHT.label).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
                 // differentialDriveMotors.get(DriveConstants.WheelIndex.BACK_RIGHT.label).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-                
+
                 differentialDrive = new DifferentialDrive(differentialDriveMotors.get(2),
                                                           differentialDriveMotors.get(0));
                 followDifferentialDrive = new DifferentialDrive(differentialDriveMotors.get(3),
@@ -171,6 +182,14 @@ public class DriveSubsystem extends SubsystemBase {
                     new SparkMax(Constants.DriveConstants.DRIVE_MOTOR_CAN_OFFSET + BACK_LEFT, MotorType.kBrushless)
                 });
 
+                // Initialize the relative encoders for the drive motors.
+                swerveDriveEncoders = Arrays.asList(new RelativeEncoder[] {
+                    swerveDriveMotors.get(FRONT_LEFT).getEncoder(),
+                    swerveDriveMotors.get(FRONT_RIGHT).getEncoder(),
+                    swerveDriveMotors.get(BACK_RIGHT).getEncoder(),
+                    swerveDriveMotors.get(BACK_LEFT).getEncoder()
+                });
+
                 // Initialize pivot motors
                 swervePivotMotors = Arrays.asList(new SparkMax[] {
                     new SparkMax(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + FRONT_LEFT, MotorType.kBrushless),
@@ -179,15 +198,27 @@ public class DriveSubsystem extends SubsystemBase {
                     new SparkMax(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + BACK_LEFT, MotorType.kBrushless)
                 });
 
-                // Initialize the pivot motors in a similar manner to how we
-                // initialized them for the 2020bot.
-                SparkMaxConfig config = new SparkMaxConfig();
-                config.idleMode(IdleMode.kBrake);
-                //TODO: This belongs in drive motor configuration for getting
-                //the drive speed in meters per second.
-                //config.encoder.velocityConversionFactor(getConversionFactor());
+                // The drive configuration and the pivot configurations will be
+                // different from the commonConfig. As of now, the driveConfig
+                // has an extra driveEncoderConfig, which is for the relative
+                // encoders of the drive. In contrast, the Pivot Motors are
+                // using the CANCoders. As such, we have two different
+                // configurations for the pivot and drive motors.
+                //
+                // First, we apply the commonConfig to them, then we apply the
+                // getConversionFactor() to the drive motors to be able to drive
+                // by meters per second, instead of revolutions.
+                SparkMaxConfig commonConfig = new SparkMaxConfig();
+                commonConfig.idleMode(IdleMode.kBrake);
+                var driveConfig = new SparkMaxConfig().apply(commonConfig);
+                var pivotConfig = new SparkMaxConfig().apply(commonConfig);
+                driveConfig.encoder.velocityConversionFactor(getConversionFactor());
+
                 swervePivotMotors.forEach(motor -> {
-                    motor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+                    motor.configure(pivotConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+                });
+                swerveDriveMotors.forEach(motor -> {
+                    motor.configure(driveConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
                 });
 
                 // Initialize CANcoders
@@ -267,6 +298,16 @@ public class DriveSubsystem extends SubsystemBase {
                 addMotorHelper.accept(swervePivotMotors, "FL Pivot", WheelIndex.FRONT_LEFT);
                 addMotorHelper.accept(swervePivotMotors, "BR Pivot", WheelIndex.BACK_RIGHT);
                 addMotorHelper.accept(swervePivotMotors, "BL Pivot", WheelIndex.BACK_LEFT);
+
+                builder.addDoubleProperty("FR m/s", swerveDriveMotors.get(WheelIndex.FRONT_RIGHT.label).getEncoder()::getVelocity, null);
+                builder.addDoubleProperty("FL m/s", swerveDriveMotors.get(WheelIndex.FRONT_LEFT.label).getEncoder()::getVelocity, null);
+                builder.addDoubleProperty("BR m/s", swerveDriveMotors.get(WheelIndex.BACK_RIGHT.label).getEncoder()::getVelocity, null);
+                builder.addDoubleProperty("BL m/s", swerveDriveMotors.get(WheelIndex.BACK_LEFT.label).getEncoder()::getVelocity, null);
+
+                builder.addDoubleProperty("FR theta", () -> swerveCANCODER.get(WheelIndex.FRONT_RIGHT.label).getPosition().getValue().in(Units.Degrees), null);
+                builder.addDoubleProperty("FL theta", () -> swerveCANCODER.get(WheelIndex.FRONT_LEFT.label).getPosition().getValue().in(Units.Degrees), null);
+                builder.addDoubleProperty("BR theta", () -> swerveCANCODER.get(WheelIndex.BACK_RIGHT.label).getPosition().getValue().in(Units.Degrees), null);
+                builder.addDoubleProperty("BL theta", () -> swerveCANCODER.get(WheelIndex.BACK_LEFT.label).getPosition().getValue().in(Units.Degrees), null);
                 break;
         }
         builder.setActuator(true);
@@ -314,37 +355,37 @@ public class DriveSubsystem extends SubsystemBase {
      * or according to the current trajectory (during autonomous).
      */
     public void periodic() {
+        // If the joystick is being moved, then the shuffleboard will be
+        // prevented from setting anything. This is to prevent the
+        // problem of the arcadeDrive() overriding the values that the
+        // shuffleboard sets.
+        if (DriverStation.isTeleopEnabled()) {
+            if (input.getForwardBack() != 0 || input.getTurn() != 0) {
+                System.out.println(input.getForwardBack());
+                this.drive(input.getLeftRight(), input.getForwardBack(), input.getTurn());
+                canShuffleBoardActuate = false;
+            } else if (!canShuffleBoardActuate) {
+                this.drive(0, 0, 0);
+            } else {
+                // canShuffleBoardActuate is true and the driver is not
+                // touching the controls.  Therefore, do _nothing_; this
+                // will permit motor values that were set in the
+                // shuffleboard to 'escape' into the actual robot without
+                // being overwritten.
+            }
+        } else {
+            // control makes it here if we're either in autonomous or
+            // testing with shuffleboard.
+        }
+        
         switch (driveType) {
             case DIFFERENTIAL_DRIVE:
-                // If the joystick is being moved, then the shuffleboard will be
-                // prevented from setting anything. This is to prevent the
-                // problem of the arcadeDrive() overriding the values that the
-                // shuffleboard sets.
-                if (DriverStation.isTeleopEnabled()) {
-                    if (input.getForwardBack() != 0 || input.getTurn() != 0) {
-                        System.out.println(input.getForwardBack());
-                        this.drive(input.getLeftRight(), input.getForwardBack(), input.getTurn());
-                        canShuffleBoardActuate = false;
-                    } else if (!canShuffleBoardActuate) {
-                        this.drive(0, 0, 0);
-                    } else {
-                        // canShuffleBoardActuate is true and the driver is not
-                        // touching the controls.  Therefore, do _nothing_; this
-                        // will permit motor values that were set in the
-                        // shuffleboard to 'escape' into the actual robot without
-                        // being overwritten.
-                    }
-                } else {
-                    // control makes it here if we're either in autonomous or
-                    // testing with shuffleboard.
-                }
 
                 // We have this if statement for a reason. It is here because if teleop isn't
                 // enabled (autonomous or test), then the code will automatically exit
                 // everything above. If we didn't have the code below inside the if statement,
                 // then arcadeDrive will be called regardless of what state the robot is in, and
                 // would override any values inputted into the shuffleboard.
-
                 if (!DriverStation.isTestEnabled()) {
                     if (Math.abs(clampedYAxis) < Constants.MathConstants.EPSILON &&
                         Math.abs(clampedTurn) < Constants.MathConstants.EPSILON) {
@@ -359,7 +400,7 @@ public class DriveSubsystem extends SubsystemBase {
                         double diffYAxis = clampedYAxis - currentYAxis;
                         diffYAxis = MathUtil.clamp(diffYAxis, -0.05, 0.05);
                         currentYAxis += diffYAxis;
-                        
+
                         double diffTurn = clampedTurn - currentTurn;
                         diffTurn = MathUtil.clamp(diffTurn, -0.25, 0.25);
                         currentTurn += diffTurn;
@@ -371,18 +412,18 @@ public class DriveSubsystem extends SubsystemBase {
                 }
                 //differentialDriveMotors.get(2).set(0.2);
                 //differentialDriveMotors.get(3).set(0.2);
-                
+
                 // differentialDriveMotors.get(0).set(0.2);
                 // differentialDriveMotors.get(1).set(0.2);
-                
+
                 break;
             case SWERVE_DRIVE:
                 // Convert the human input into a ChassisSpeeds object giving us
                 // the overall bearing of the chassis.
                 ChassisSpeeds movement =
-                    new ChassisSpeeds(Constants.DriveConstants.SWERVE_DRIVE_MAX_DRIVING_SPEED * input.getForwardBack(),
-                                      Constants.DriveConstants.SWERVE_DRIVE_MAX_DRIVING_SPEED * input.getLeftRight(),
-                                      Constants.DriveConstants.SWERVE_DRIVE_MAX_TURNING_SPEED * input.getTurn());
+                    new ChassisSpeeds(Constants.DriveConstants.SWERVE_DRIVE_MAX_DRIVING_SPEED * clampedYAxis,
+                                      Constants.DriveConstants.SWERVE_DRIVE_MAX_DRIVING_SPEED * clampedXAxis,
+                                      Constants.DriveConstants.SWERVE_DRIVE_MAX_TURNING_SPEED * clampedTurn);
 
                 // With inverse kinematics, convert the overall chassis speed
                 // into the speeds and angles for all four swerve modules.
