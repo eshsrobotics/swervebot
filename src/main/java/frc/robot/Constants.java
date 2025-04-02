@@ -172,8 +172,8 @@ public final class Constants {
     public static final double LIFT_HEIGHT_2 = 2;
     public static final double LIFT_HEIGHT_3 = 3;
 
-    public static final double LIFT_SPEED = 0.1;
-    public static final double CORAL_INTAKE_SPEED = 0.03;
+    public static final double LIFT_SPEED = 0.17; //originally 0.12
+    public static final double CORAL_OUTTAKE_SPEED = 0.1;
   }
 
   public static class MathConstants {

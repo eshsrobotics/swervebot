@@ -299,14 +299,14 @@ public class DriveSubsystem extends SubsystemBase {
      * left.
      * @param yAxis The speed at which the robot should move forward or
      * backward. A value of 1.0 means full speed forward and -1.0 means full
-     * speed backward.
+     * speed backward. 
      * @param turn The speed at which the robot should turn (1.0 is full speed
-     * clockwise and -1.0 is full speed counterclockwise.
+     * clockwise and -1.0 is full speed counterclockwise. 
      */
     public void drive(double xAxis, double yAxis, double turn) {
         clampedXAxis = MathUtil.clamp(xAxis, -1.0, 1.0);
         clampedYAxis = MathUtil.clamp(yAxis, -0.8, 0.8);
-        clampedTurn = MathUtil.clamp(turn, -0.5, 0.5);
+        clampedTurn = MathUtil.clamp(turn, -0.72, 0.72);
     }
 
     /**
