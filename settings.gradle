@@ -28,3 +28,11 @@ pluginManagement {
 
 Properties props = System.getProperties();
 props.setProperty("org.gradle.internal.native.headers.unresolved.dependencies.ignore", "true");
+
+rootProject.name = 'swervebot'
+
+// Include the simulator subproject correctly
+include ':simulator'
+
+// Set the project directory for the simulator subproject
+project(':simulator').projectDir = file('src/simulator')
