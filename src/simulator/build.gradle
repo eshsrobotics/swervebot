@@ -7,12 +7,7 @@ plugins {
 mainClassName = 'frc.robotSimulator.Main' // Replace with your actual main class
 
 dependencies {
-    // // Depend on the core library
-    // implementation project(':src:core')
-
-    // // Add other dependencies as needed
-    // implementation 'org.slf4j:slf4j-api:2.0.9' // Example: Logging library
-    // testImplementation 'org.junit.jupiter:junit-jupiter:5.9.3' // Example: Testing library
+    implementation project(':core')
 }
 
 // Repository for dependencies

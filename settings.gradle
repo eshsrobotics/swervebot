@@ -32,7 +32,9 @@ props.setProperty("org.gradle.internal.native.headers.unresolved.dependencies.ig
 rootProject.name = 'swervebot'
 
 // Include the simulator subproject correctly
-include ':simulator'
+include ':core', ':simulator'
 
 // Set the project directory for the simulator subproject
+project(':core').projectDir = file('src/core')
 project(':simulator').projectDir = file('src/simulator')
+
