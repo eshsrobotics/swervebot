@@ -45,13 +45,13 @@ public final class Constants {
      * Theoretical maximum of chassis speed in meters per second for kinematic
      * conversion purposes.
      */
-    public static final double SWERVE_DRIVE_MAX_DRIVING_SPEED = 0.5;
+    public static final double SWERVE_DRIVE_MAX_DRIVING_SPEED_METERS_PER_SECOND = 0.5;
 
     /**
      * Theoretical maximum turning speed of the robot in radians per second for
      * kinematic conversion purposes.
      */
-    public static final double SWERVE_DRIVE_MAX_TURNING_SPEED = 0.4;
+    public static final double SWERVE_DRIVE_MAX_TURNING_SPEED_RADIANS_PER_SECOND = 0.4;
 
     /**
      * The positions of the wheels on the Chassis measured in meters.
@@ -64,6 +64,15 @@ public final class Constants {
       new Translation2d(-0.3, 0.3), // BACK RIGHT
       new Translation2d(-0.3, -0.3) // BACK LEFT
     );
+
+    /**
+     * The deadzone for the pivot angles. As the PID controller will try to
+     * reach its setpoint, it will consider values within this range close
+     * enough.
+     *
+     * TODO: Test and see if this value is too small or too large.
+     */
+    public static final double PIVOT_ANGLE_TOLERANCE_RADIANS = Math.PI / 180;
 
     /**
      * The type of drive that the {@link DriveSubsystem} will use.

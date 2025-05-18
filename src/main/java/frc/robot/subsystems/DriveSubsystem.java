@@ -95,10 +95,18 @@ public class DriveSubsystem extends SubsystemBase {
      */
     private boolean canShuffleBoardActuate;
 
-    private double clampedXAxis;
-    private double clampedYAxis;
+    private double clampedForwardBack;
+    private double clampedLeftRight;
     private double clampedTurn;
+
+    /**
+     * Used only for the differential drive.
+     */
     private double currentYAxis;
+
+    /**
+     * Used only for the differential drive.
+     */
     private double currentTurn;
 
     /**
@@ -134,7 +142,7 @@ public class DriveSubsystem extends SubsystemBase {
                 commonConfig.idleMode(IdleMode.kBrake);
                 SparkMaxConfig leftFollowerConfig = new SparkMaxConfig();
                 SparkMaxConfig rightFollowerConfig = new SparkMaxConfig();
-                
+
                 SparkMaxConfig followConfig = new SparkMaxConfig();
                 followConfig.idleMode(IdleMode.kBrake);
                 followConfig.inverted(true);
@@ -150,7 +158,7 @@ public class DriveSubsystem extends SubsystemBase {
                 // differentialDriveMotors.get(DriveConstants.WheelIndex.BACK_LEFT.label).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
                 // differentialDriveMotors.get(DriveConstants.WheelIndex.FRONT_RIGHT.label).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
                 // differentialDriveMotors.get(DriveConstants.WheelIndex.BACK_RIGHT.label).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-                
+
                 differentialDrive = new DifferentialDrive(differentialDriveMotors.get(2),
                                                           differentialDriveMotors.get(0));
                 followDifferentialDrive = new DifferentialDrive(differentialDriveMotors.get(3),
@@ -204,6 +212,13 @@ public class DriveSubsystem extends SubsystemBase {
                     new PIDController(Constants.DriveConstants.PIVOT_MOTOR_P, Constants.DriveConstants.PIVOT_MOTOR_I, Constants.DriveConstants.PIVOT_MOTOR_D),
                     new PIDController(Constants.DriveConstants.PIVOT_MOTOR_P, Constants.DriveConstants.PIVOT_MOTOR_I, Constants.DriveConstants.PIVOT_MOTOR_D)
                 });
+
+                // Set the PID controller's setpoint to the angle of the
+                // swerve module state.
+                for (int i = 0; i < pivotMotorPIDControllers.size(); i++) {
+                    pivotMotorPIDControllers.get(i).setTolerance(Constants.DriveConstants.PIVOT_ANGLE_TOLERANCE_RADIANS);
+                    pivotMotorPIDControllers.get(i).enableContinuousInput(-Math.PI, Math.PI);
+                }
                 break;
             }
         }
@@ -299,13 +314,13 @@ public class DriveSubsystem extends SubsystemBase {
      * left.
      * @param yAxis The speed at which the robot should move forward or
      * backward. A value of 1.0 means full speed forward and -1.0 means full
-     * speed backward. 
+     * speed backward.
      * @param turn The speed at which the robot should turn (1.0 is full speed
-     * clockwise and -1.0 is full speed counterclockwise. 
+     * clockwise and -1.0 is full speed counterclockwise.
      */
     public void drive(double xAxis, double yAxis, double turn) {
-        clampedXAxis = MathUtil.clamp(xAxis, -1.0, 1.0);
-        clampedYAxis = MathUtil.clamp(yAxis, -0.8, 0.8);
+        clampedForwardBack = MathUtil.clamp(xAxis, -1.0, 1.0);
+        clampedLeftRight = MathUtil.clamp(yAxis, -0.8, 0.8);
         clampedTurn = MathUtil.clamp(turn, -0.72, 0.72);
     }
 
@@ -346,7 +361,7 @@ public class DriveSubsystem extends SubsystemBase {
                 // would override any values inputted into the shuffleboard.
 
                 if (!DriverStation.isTestEnabled()) {
-                    if (Math.abs(clampedYAxis) < Constants.MathConstants.EPSILON &&
+                    if (Math.abs(clampedLeftRight) < Constants.MathConstants.EPSILON &&
                         Math.abs(clampedTurn) < Constants.MathConstants.EPSILON) {
                         differentialDrive.arcadeDrive(0.0, 0.0);
                         followDifferentialDrive.arcadeDrive(0.0, 0.0);
@@ -356,33 +371,35 @@ public class DriveSubsystem extends SubsystemBase {
                         // by calculating the difference between the target value, clampedYAxis
                         // and the current value, currentYAxis. Then clamping the difference to
                         // a threshold and adding the clamped difference to the current value.
-                        double diffYAxis = clampedYAxis - currentYAxis;
+                        double diffYAxis = clampedLeftRight - currentYAxis;
                         diffYAxis = MathUtil.clamp(diffYAxis, -0.05, 0.05);
                         currentYAxis += diffYAxis;
-                        
+
                         double diffTurn = clampedTurn - currentTurn;
                         diffTurn = MathUtil.clamp(diffTurn, -0.25, 0.25);
                         currentTurn += diffTurn;
 
                         differentialDrive.arcadeDrive(currentYAxis, currentTurn);
                         followDifferentialDrive.arcadeDrive(currentYAxis, currentTurn);
-                        System.out.println("y-axis: " + clampedYAxis + " turn: " + clampedTurn);
+                        System.out.println("y-axis: " + clampedLeftRight + " turn: " + clampedTurn);
                     }
                 }
                 //differentialDriveMotors.get(2).set(0.2);
                 //differentialDriveMotors.get(3).set(0.2);
-                
+
                 // differentialDriveMotors.get(0).set(0.2);
                 // differentialDriveMotors.get(1).set(0.2);
-                
+
                 break;
             case SWERVE_DRIVE:
                 // Convert the human input into a ChassisSpeeds object giving us
                 // the overall bearing of the chassis.
+                //
+                // We will always be driving using values from the drive().
                 ChassisSpeeds movement =
-                    new ChassisSpeeds(Constants.DriveConstants.SWERVE_DRIVE_MAX_DRIVING_SPEED * input.getForwardBack(),
-                                      Constants.DriveConstants.SWERVE_DRIVE_MAX_DRIVING_SPEED * input.getLeftRight(),
-                                      Constants.DriveConstants.SWERVE_DRIVE_MAX_TURNING_SPEED * input.getTurn());
+                    new ChassisSpeeds(Constants.DriveConstants.SWERVE_DRIVE_MAX_DRIVING_SPEED_METERS_PER_SECOND * clampedForwardBack,
+                                      Constants.DriveConstants.SWERVE_DRIVE_MAX_DRIVING_SPEED_METERS_PER_SECOND * clampedLeftRight,
+                                      Constants.DriveConstants.SWERVE_DRIVE_MAX_TURNING_SPEED_RADIANS_PER_SECOND * clampedTurn);
 
                 // With inverse kinematics, convert the overall chassis speed
                 // into the speeds and angles for all four swerve modules.
@@ -398,11 +415,17 @@ public class DriveSubsystem extends SubsystemBase {
 
                 SwerveModuleState[] swerveStates = kinematics.toSwerveModuleStates(movement);
 
-                double[] CANCoderAngles = new double[4];
+                // Grab CANCoder measurements.
+                // Our PID setpoints come from the SwerveModuleStates.
+                double[] CANCoderAnglesRadians = new double[4];
                 for (int i = 0; i < 4; i++) {
-                   var temporary = swerveCANCODER.get(i).getAbsolutePosition();
-                   temporary.refresh();
-                   CANCoderAngles[i] = temporary.getValueAsDouble();
+                    var temporary = swerveCANCODER.get(i).getAbsolutePosition(true);
+                    // Removed the refresh call because getAbsolutePosition() already refreshes
+                    // automatically.
+                    // temporary.refresh();
+                    CANCoderAnglesRadians[i] = temporary.getValueAsDouble() * 2 * Math.PI;
+
+                    // TODO: We need to subtract the offset to the CANCoder angle.
                 }
 
                 // TODO: Use the CANCoder's measurements for the PID
@@ -411,6 +434,35 @@ public class DriveSubsystem extends SubsystemBase {
                 //
                 // Later, we should InItsendable to send our piviot angles to
                 // the suffleboard for easier debugging.
+
+                for (int i = 0; i < 4; i++) {
+                    // Get the pivot motor's PID controller.
+                    var pivotMotorPIDController = pivotMotorPIDControllers.get(i);
+
+                    // Get the swerve module state.
+                    var swerveModuleState = swerveStates[i];
+
+                    // Get the pivot motor.
+                    var pivotMotor = swervePivotMotors.get(i);
+
+                    // // Set the PID controller's setpoint to the angle of the
+                    // // swerve module state.
+                    // pivotMotorPIDController.setSetpoint(swerveModuleState.angle.getDegrees());
+
+                    if (pivotMotorPIDController.atSetpoint()) {
+                        // If the PID controller is at the setpoint, then we
+                        // don't need to do anything.
+                        pivotMotor.stopMotor();
+                    } else {
+                        // Get the output from the PID controller.
+                        double power = pivotMotorPIDController.calculate(CANCoderAnglesRadians[i],
+                                                                         swerveModuleState.angle.getRadians());
+
+                        // Set the output to the pivot motor.
+                        pivotMotor.set(power);
+                    }
+
+                }
 
                 break;
             default:
