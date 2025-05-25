@@ -74,13 +74,14 @@ public class ArmSubsystem extends SubsystemBase {
         liftConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
 
         SparkMaxConfig followLiftConfig = new SparkMaxConfig();
-        followLiftConfig.follow(Constants.ArmConstants.LEFT_LIFT_CAN_ID).apply(liftConfig);
-        
+        //followLiftConfig.follow(Constants.ArmConstants.LEFT_LIFT_CAN_ID, true).apply(liftConfig);
+        followLiftConfig.inverted(true).apply(liftConfig);
+
         SparkMaxConfig coralConfig = new SparkMaxConfig();
         coralConfig.idleMode(IdleMode.kBrake);
 
         SparkMaxConfig followCoralConfig = new SparkMaxConfig();
-        followCoralConfig.follow(Constants.ArmConstants.LEFT_CORAL_CAN_ID).apply(coralConfig);
+        followCoralConfig.follow(Constants.ArmConstants.LEFT_CORAL_CAN_ID, true).apply(coralConfig);
 
 
         LeftLift.configure(liftConfig, com.revrobotics.spark.SparkBase.ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -98,17 +99,19 @@ public class ArmSubsystem extends SubsystemBase {
             this.spinOuttake(input.isCoralIntakeActivated());
         }
         if (isOuttaking) {
-            LeftCoral.set(Constants.ArmConstants.CORAL_INTAKE_SPEED);
-            System.out.println("Coral outtaking at " + Constants.ArmConstants.CORAL_INTAKE_SPEED * 100 + "%");
+            LeftCoral.set(Constants.ArmConstants.CORAL_OUTTAKE_SPEED);
+            System.out.println("Gong outtaking at " + Constants.ArmConstants.CORAL_OUTTAKE_SPEED * 100 + "%");
         } else {
             LeftCoral.stopMotor();
         }
 
         // Move the arm according to input from teleop or autonomous.
         if (Math.abs(armSpeed) >= Constants.MathConstants.EPSILON) {
-            LeftLift.set(armSpeed);
+            LeftLift.set(armSpeed * 1.0);
+            RightLift.set(armSpeed * 1.1);
         } else {
             LeftLift.stopMotor();
+            RightLift.stopMotor();
         }
     }
 

@@ -45,13 +45,13 @@ public final class Constants {
      * Theoretical maximum of chassis speed in meters per second for kinematic
      * conversion purposes.
      */
-    public static final double SWERVE_DRIVE_MAX_DRIVING_SPEED = 0.5;
+    public static final double SWERVE_DRIVE_MAX_DRIVING_SPEED_METERS_PER_SECOND = 0.5;
 
     /**
      * Theoretical maximum turning speed of the robot in radians per second for
      * kinematic conversion purposes.
      */
-    public static final double SWERVE_DRIVE_MAX_TURNING_SPEED = 0.4;
+    public static final double SWERVE_DRIVE_MAX_TURNING_SPEED_RADIANS_PER_SECOND = 0.4;
 
     /**
      * The positions of the wheels on the Chassis measured in meters.
@@ -64,6 +64,15 @@ public final class Constants {
       new Translation2d(-0.3, 0.3), // BACK RIGHT
       new Translation2d(-0.3, -0.3) // BACK LEFT
     );
+
+    /**
+     * The deadzone for the pivot angles. As the PID controller will try to
+     * reach its setpoint, it will consider values within this range close
+     * enough.
+     *
+     * TODO: Test and see if this value is too small or too large.
+     */
+    public static final double PIVOT_ANGLE_TOLERANCE_RADIANS = Math.PI / 180;
 
     /**
      * The type of drive that the {@link DriveSubsystem} will use.
@@ -127,10 +136,10 @@ public final class Constants {
      * Assumption: IF we can assign the CAN IDs to all four CANCoders, *THEN* we prefer to
      * assign them in the order:
      * <ol>
-     *    <li>FRONT_LEFT</li>
-     *    <li>FRONT_RIGHT</li>
-     *    <li>BACK_RIGHT</li>
-     *    <li>BACK_LEFT</li>
+     *    <li>FRONT_LEFT</li> 11
+     *    <li>FRONT_RIGHT</li> 12
+     *    <li>BACK_RIGHT</li> 9
+     *    <li>BACK_LEFT</li> 10
      *  </ol>
      * This will give us a way to predict the correct CANCoder behind any CAN ID
      * we see.
@@ -172,8 +181,8 @@ public final class Constants {
     public static final double LIFT_HEIGHT_2 = 2;
     public static final double LIFT_HEIGHT_3 = 3;
 
-    public static final double LIFT_SPEED = 0.1;
-    public static final double CORAL_INTAKE_SPEED = 0.03;
+    public static final double LIFT_SPEED = 0.17; //originally 0.12
+    public static final double CORAL_OUTTAKE_SPEED = 0.1;
   }
 
   public static class MathConstants {

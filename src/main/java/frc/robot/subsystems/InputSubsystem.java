@@ -177,7 +177,7 @@ public class InputSubsystem extends SubsystemBase {
                       MathUtil.applyDeadband(joystickTurn, Constants.OperatorConstants.JOYSTICK_DEAD_ZONE);
 
         turn = MathUtil.clamp(turn, -1.0, 1.0);
-
+        
         return m_rotLimiter.calculate(turn);
     }
 
@@ -234,8 +234,6 @@ public class InputSubsystem extends SubsystemBase {
     public double getArmMovement() {
         if(xboxController != null && xboxController.isConnected() == true) {
             if (xboxController.getYButton()) {
-                return Constants.ArmConstants.LIFT_SPEED;
-            } else if (xboxController.getAButton()) {
                 return Constants.ArmConstants.LIFT_SPEED * -1;
             } else if (xboxController.getAButton()) {
                 return Constants.ArmConstants.LIFT_SPEED;
