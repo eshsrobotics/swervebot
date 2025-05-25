@@ -93,10 +93,10 @@ public final class Constants {
      * <p> This list will be null if we are using a differential drive. </p>
      */
     public enum WheelIndex {
-        FRONT_LEFT(3),
-        FRONT_RIGHT(4),
-        BACK_RIGHT(1),
-        BACK_LEFT(2);
+        FRONT_LEFT(2),
+        FRONT_RIGHT(3),
+        BACK_RIGHT(0),
+        BACK_LEFT(1);
 
         public final int label;
 
