@@ -136,10 +136,10 @@ public final class Constants {
      * Assumption: IF we can assign the CAN IDs to all four CANCoders, *THEN* we prefer to
      * assign them in the order:
      * <ol>
-     *    <li>FRONT_LEFT</li>
-     *    <li>FRONT_RIGHT</li>
-     *    <li>BACK_RIGHT</li>
-     *    <li>BACK_LEFT</li>
+     *    <li>FRONT_LEFT</li> 11
+     *    <li>FRONT_RIGHT</li> 12
+     *    <li>BACK_RIGHT</li> 9
+     *    <li>BACK_LEFT</li> 10
      *  </ol>
      * This will give us a way to predict the correct CANCoder behind any CAN ID
      * we see.
