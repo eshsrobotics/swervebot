@@ -26,6 +26,8 @@ import frc.robot.Constants;
 import frc.robot.Constants.*;
 import frc.robot.Constants.DriveConstants.DriveType;
 import frc.robot.Constants.DriveConstants.WheelIndex;
+import frc.robot.factories.PtMotorController;
+import frc.robot.factories.RoboFactory;
 
 public class DriveSubsystem extends SubsystemBase {
 
@@ -42,19 +44,19 @@ public class DriveSubsystem extends SubsystemBase {
      *
      * <p> This array will be null if we are using a swerve drive. </p>
      */
-    private List<SparkMax> differentialDriveMotors;
+    private List<PtMotorController> differentialDriveMotors;
 
     /**
      * The list of Spark Maxes controlling the swerve drive motors.
      */
-    private List<SparkMax> swerveDriveMotors;
+    private List<PtMotorController> swerveDriveMotors;
 
     /**
      * The list of Spark Maxes controlling the swerve pivot motors.
      *
      * <p> This list will be null if we are using a differential drive. </p>
      */
-    private List<SparkMax> swervePivotMotors;
+    private List<PtMotorController> swervePivotMotors;
 
     /**
      * To read each swerve module's pivot angle, we will use CANCoders (we will
@@ -172,19 +174,19 @@ public class DriveSubsystem extends SubsystemBase {
                 final int BACK_LEFT = DriveConstants.WheelIndex.BACK_LEFT.label;
 
                 // Initialize drive motors
-                swerveDriveMotors = Arrays.asList(new SparkMax[] {
-                    new SparkMax(Constants.DriveConstants.DRIVE_MOTOR_CAN_OFFSET + FRONT_LEFT, MotorType.kBrushless),
-                    new SparkMax(Constants.DriveConstants.DRIVE_MOTOR_CAN_OFFSET + FRONT_RIGHT, MotorType.kBrushless),
-                    new SparkMax(Constants.DriveConstants.DRIVE_MOTOR_CAN_OFFSET + BACK_RIGHT, MotorType.kBrushless),
-                    new SparkMax(Constants.DriveConstants.DRIVE_MOTOR_CAN_OFFSET + BACK_LEFT, MotorType.kBrushless)
+                swerveDriveMotors = Arrays.asList(new PtMotorController[] {
+                    RoboFactory.instance.createBrushlessMotorController(Constants.DriveConstants.DRIVE_MOTOR_CAN_OFFSET + FRONT_LEFT),
+                    RoboFactory.instance.createBrushlessMotorController(Constants.DriveConstants.DRIVE_MOTOR_CAN_OFFSET + FRONT_RIGHT),
+                    RoboFactory.instance.createBrushlessMotorController(Constants.DriveConstants.DRIVE_MOTOR_CAN_OFFSET + BACK_RIGHT),
+                    RoboFactory.instance.createBrushlessMotorController(Constants.DriveConstants.DRIVE_MOTOR_CAN_OFFSET + BACK_LEFT)
                 });
 
                 // Initialize pivot motors
-                swervePivotMotors = Arrays.asList(new SparkMax[] {
-                    new SparkMax(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + FRONT_LEFT, MotorType.kBrushless),
-                    new SparkMax(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + FRONT_RIGHT, MotorType.kBrushless),
-                    new SparkMax(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + BACK_RIGHT, MotorType.kBrushless),
-                    new SparkMax(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + BACK_LEFT, MotorType.kBrushless)
+                swervePivotMotors = Arrays.asList(new PtMotorController[] {
+                    RoboFactory.instance.createBrushlessMotorController(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + FRONT_LEFT),
+                    RoboFactory.instance.createBrushlessMotorController(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + FRONT_RIGHT),
+                    RoboFactory.instance.createBrushlessMotorController(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + BACK_RIGHT),
+                    RoboFactory.instance.createBrushlessMotorController(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + BACK_LEFT)
                 });
 
                 // Initialize the pivot motors in a similar manner to how we
@@ -262,6 +264,7 @@ public class DriveSubsystem extends SubsystemBase {
         builder.setSmartDashboardType(this.driveType.toString() == "DIFFERENTIAL_DRIVE" ? "DifferentialDrive" : "SwerveDrive");
         switch (driveType) {
             case DIFFERENTIAL_DRIVE:
+            differentialDriveMotors.get(0).set(10);
 
                 // Add the differential drive motors to the shuffleboard.
                 addMotorHelper.accept(differentialDriveMotors, "FR Motor", WheelIndex.FRONT_RIGHT);
