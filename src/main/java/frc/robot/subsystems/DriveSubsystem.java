@@ -23,11 +23,11 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Environment;
 import frc.robot.Constants.*;
 import frc.robot.Constants.DriveConstants.DriveType;
 import frc.robot.Constants.DriveConstants.WheelIndex;
-import frc.robot.factories.PtMotorController;
-import frc.robot.factories.RoboFactory;
+import frc.robot.abstractions.PtMotorController;
 
 public class DriveSubsystem extends SubsystemBase {
 
@@ -129,11 +129,11 @@ public class DriveSubsystem extends SubsystemBase {
                 final int FRONT_RIGHT_ID = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.FRONT_RIGHT.label;
                 final int BACK_RIGHT_ID = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.BACK_RIGHT.label;
                 final int BACK_LEFT_ID = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.BACK_LEFT.label;
-                differentialDriveMotors = Arrays.asList(new SparkMax[] {
-                    new SparkMax(FRONT_RIGHT_ID, MotorType.kBrushed),
-                    new SparkMax(BACK_RIGHT_ID, MotorType.kBrushed),
-                    new SparkMax(BACK_LEFT_ID, MotorType.kBrushed),
-                    new SparkMax(FRONT_LEFT_ID, MotorType.kBrushed)
+                differentialDriveMotors = Arrays.asList(new PtMotorController[] {
+                    Environment.roboticsFactory.createBrushedMotorController(FRONT_RIGHT_ID),
+                    Environment.roboticsFactory.createBrushedMotorController(BACK_RIGHT_ID),
+                    Environment.roboticsFactory.createBrushedMotorController(BACK_LEFT_ID),
+                    Environment.roboticsFactory.createBrushedMotorController(FRONT_LEFT_ID)
                 });
 
                 // We are using two different Configs for the left and right
@@ -175,18 +175,18 @@ public class DriveSubsystem extends SubsystemBase {
 
                 // Initialize drive motors
                 swerveDriveMotors = Arrays.asList(new PtMotorController[] {
-                    RoboFactory.instance.createBrushlessMotorController(Constants.DriveConstants.DRIVE_MOTOR_CAN_OFFSET + FRONT_LEFT),
-                    RoboFactory.instance.createBrushlessMotorController(Constants.DriveConstants.DRIVE_MOTOR_CAN_OFFSET + FRONT_RIGHT),
-                    RoboFactory.instance.createBrushlessMotorController(Constants.DriveConstants.DRIVE_MOTOR_CAN_OFFSET + BACK_RIGHT),
-                    RoboFactory.instance.createBrushlessMotorController(Constants.DriveConstants.DRIVE_MOTOR_CAN_OFFSET + BACK_LEFT)
+                    Environment.roboticsFactory.createBrushlessMotorController(Constants.DriveConstants.DRIVE_MOTOR_CAN_OFFSET + FRONT_LEFT),
+                    Environment.roboticsFactory.createBrushlessMotorController(Constants.DriveConstants.DRIVE_MOTOR_CAN_OFFSET + FRONT_RIGHT),
+                    Environment.roboticsFactory.createBrushlessMotorController(Constants.DriveConstants.DRIVE_MOTOR_CAN_OFFSET + BACK_RIGHT),
+                    Environment.roboticsFactory.createBrushlessMotorController(Constants.DriveConstants.DRIVE_MOTOR_CAN_OFFSET + BACK_LEFT)
                 });
 
                 // Initialize pivot motors
                 swervePivotMotors = Arrays.asList(new PtMotorController[] {
-                    RoboFactory.instance.createBrushlessMotorController(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + FRONT_LEFT),
-                    RoboFactory.instance.createBrushlessMotorController(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + FRONT_RIGHT),
-                    RoboFactory.instance.createBrushlessMotorController(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + BACK_RIGHT),
-                    RoboFactory.instance.createBrushlessMotorController(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + BACK_LEFT)
+                    Environment.roboticsFactory.createBrushlessMotorController(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + FRONT_LEFT),
+                    Environment.roboticsFactory.createBrushlessMotorController(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + FRONT_RIGHT),
+                    Environment.roboticsFactory.createBrushlessMotorController(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + BACK_RIGHT),
+                    Environment.roboticsFactory.createBrushlessMotorController(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + BACK_LEFT)
                 });
 
                 // Initialize the pivot motors in a similar manner to how we

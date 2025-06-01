@@ -1,4 +1,4 @@
-package frc.robot.factories;
+package frc.robot.abstractions;
 
 public interface PtMotorController {
     public void set(double speed);
