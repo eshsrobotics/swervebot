@@ -30,7 +30,6 @@ import frc.robot.Constants.DriveConstants.WheelIndex;
 public class DriveSubsystem extends SubsystemBase {
 
     private InputSubsystem input;
-    private double maxDriveSpeed;
     private double maxTurnSpeed;
     private DriveType driveType;
     private DifferentialDrive differentialDrive;
@@ -435,6 +434,7 @@ public class DriveSubsystem extends SubsystemBase {
                 // Later, we should InItsendable to send our piviot angles to
                 // the suffleboard for easier debugging.
 
+                //
                 for (int i = 0; i < 4; i++) {
                     // Get the pivot motor's PID controller.
                     var pivotMotorPIDController = pivotMotorPIDControllers.get(i);
@@ -462,6 +462,24 @@ public class DriveSubsystem extends SubsystemBase {
                         pivotMotor.set(power);
                     }
 
+                    // We are powering the drive motor without PID because we do
+                    // not care when the drive motor reaches a specific velocity
+                    // as long it goes vroom.
+                    var driveMotor = swerveDriveMotors.get(i);
+
+                    /**
+                     * SparkMaxes can only set speeds as percentages. We are
+                     * converting the swerveModuleState speed into meters per
+                     * second.
+                     */
+                    final double speed = swerveModuleState.speedMetersPerSecond / DriveConstants.SWERVE_DRIVE_MAX_DRIVING_SPEED_METERS_PER_SECOND;
+
+                    // Deadzoning the driving speed to save power.
+                    if (Math.abs(speed) < DriveConstants.SWERVE_DRIVE_DEADZONE) {
+                        driveMotor.stopMotor();
+                    } else {
+                        driveMotor.set(speed);
+                    }
                 }
 
                 break;

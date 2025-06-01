@@ -48,21 +48,41 @@ public final class Constants {
     public static final double SWERVE_DRIVE_MAX_DRIVING_SPEED_METERS_PER_SECOND = 0.5;
 
     /**
+     * SparkMaxes set velocities in abstract percentages [-1,1]. As such, the
+     * deadzone is a percentage too.
+     */
+    public static final double SWERVE_DRIVE_DEADZONE = 0.01;
+
+    /**
      * Theoretical maximum turning speed of the robot in radians per second for
      * kinematic conversion purposes.
      */
     public static final double SWERVE_DRIVE_MAX_TURNING_SPEED_RADIANS_PER_SECOND = 0.4;
 
     /**
+     * The horizontal distance between the left and the right swerve modules in meters.
+     */
+    private static final double CHASSIS_WIDTH_METERS = 0.6; // TODO: Measure the real value for this number.
+
+    /**
+     * The distance between the front and the back swerve modules in meters.
+     */
+    private static final double CHASSIS_LENGTH_METERS = 0.6; // TODO: Measure the real value for this number.
+
+    /**
      * The positions of the wheels on the Chassis measured in meters.
+     *
+     * {@link ChassisSpeeds} class considers the y-axis to represent the
+     * side-to-side movement, which holonomic drives like ours have but
+     * differential drives do not.
      *
      * @todo Measure the real values for these numbers.
      */
     public static final List<Translation2d> SWERVE_MODULE_POSITIONS = Arrays.asList(
-      new Translation2d(0.3, -0.3), // FRONT_LEFT
-      new Translation2d(0.3, 0.3),  // FRONT_RIGHT,
-      new Translation2d(-0.3, 0.3), // BACK RIGHT
-      new Translation2d(-0.3, -0.3) // BACK LEFT
+      new Translation2d(-CHASSIS_LENGTH_METERS / 2, CHASSIS_WIDTH_METERS / 2),  // BACK RIGHT
+      new Translation2d(-CHASSIS_LENGTH_METERS / 2, -CHASSIS_WIDTH_METERS / 2), // BACK LEFT
+      new Translation2d(CHASSIS_LENGTH_METERS / 2, -CHASSIS_WIDTH_METERS / 2),  // FRONT_LEFT
+      new Translation2d(CHASSIS_LENGTH_METERS / 2, CHASSIS_WIDTH_METERS / 2)    // FRONT_RIGHT
     );
 
     /**
