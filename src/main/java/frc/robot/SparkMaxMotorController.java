@@ -6,8 +6,8 @@ public class SparkMaxMotorController implements frc.robot.abstractions.PtMotorCo
 
     private final SparkMax sparkMax;
 
-    public SparkMaxMotorController(int deviceID, SparkMax.MotorType motorType) {
-        sparkMax = new SparkMax(deviceID, motorType);
+    public SparkMaxMotorController(SparkMax sparkMax) {
+        this.sparkMax = sparkMax;
     }
 
     @Override

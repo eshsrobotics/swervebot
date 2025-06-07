@@ -12,16 +12,21 @@ public class FrcRoboticsFactory implements frc.robot.abstractions.PtRoboticsFact
 
     @Override
     public frc.robot.abstractions.PtMotorController createBrushlessMotorController(int deviceID) {
-        SparkMaxConfig config = new SparkMaxConfig();
-        config.idleMode(IdleMode.kBrake);
-        PtMotorController motorController = new SparkMaxMotorController(deviceID, SparkMax.MotorType.kBrushless);
-        motorController.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
-        return
+        return createMotorController(deviceID, SparkMax.MotorType.kBrushless);
     }
 
     @Override
     public PtMotorController createBrushedMotorController(int deviceID) {
-        return new SparkMaxMotorController(deviceID, SparkMax.MotorType.kBrushed);
+        return createMotorController(deviceID, SparkMax.MotorType.kBrushed);
+    }
+
+    private frc.robot.abstractions.PtMotorController createMotorController(int deviceID, SparkMax.MotorType motorType) {
+        var config = new SparkMaxConfig();
+        config.idleMode(IdleMode.kBrake);
+        var sparkMax = new SparkMax(deviceID, motorType);
+        sparkMax.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+        var motorController = new SparkMaxMotorController(sparkMax);
+        return motorController;
     }
 
 
