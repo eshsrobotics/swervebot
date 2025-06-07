@@ -139,21 +139,26 @@ public class DriveSubsystem extends SubsystemBase {
                 // motors as sometimes they will be doing different things at
                 // times. For example, when turning, the left and the right side
                 // will be moving in the opposite directions.
+
+
+
+
                 SparkMaxConfig commonConfig = new SparkMaxConfig();
                 commonConfig.idleMode(IdleMode.kBrake);
                 SparkMaxConfig leftFollowerConfig = new SparkMaxConfig();
                 SparkMaxConfig rightFollowerConfig = new SparkMaxConfig();
+                leftFollowerConfig.follow(FRONT_LEFT_ID, true).apply(commonConfig);
+                rightFollowerConfig.follow(FRONT_RIGHT_ID).apply(commonConfig);
+                differentialDriveMotors.get(FRONT_LEFT_ID).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                differentialDriveMotors.get(FRONT_RIGHT_ID).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
 
                 SparkMaxConfig followConfig = new SparkMaxConfig();
                 followConfig.idleMode(IdleMode.kBrake);
                 followConfig.inverted(true);
+                differentialDriveMotors.get(BACK_RIGHT_ID).configure(followConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                differentialDriveMotors.get(BACK_LEFT_ID).configure(followConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-                leftFollowerConfig.follow(FRONT_LEFT_ID, true).apply(commonConfig);
-                rightFollowerConfig.follow(FRONT_RIGHT_ID).apply(commonConfig);
-                differentialDriveMotors.get(2).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-                differentialDriveMotors.get(3).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-                differentialDriveMotors.get(0).configure(followConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-                differentialDriveMotors.get(1).configure(followConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
                 // differentialDriveMotors.get(DriveConstants.WheelIndex.FRONT_LEFT.label).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
                 // differentialDriveMotors.get(DriveConstants.WheelIndex.BACK_LEFT.label).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
