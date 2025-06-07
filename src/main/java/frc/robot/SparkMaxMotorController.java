@@ -11,8 +11,29 @@ public class SparkMaxMotorController implements frc.robot.abstractions.PtMotorCo
     }
 
     @Override
+    public double get() {
+        return sparkMax.get();
+    }
+
+    @Override
     public void set(double speed) {
         sparkMax.set(speed);
     }
+
+    @Override
+    public void stopMotor() {
+        sparkMax.stopMotor();
+    }
+
+
+
+    @Override
+    public void disable() {
+        sparkMax.disable();
+    }
+
+
+
+
 
 }

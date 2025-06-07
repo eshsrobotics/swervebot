@@ -1,5 +1,8 @@
 package frc.robot.abstractions;
 
 public interface PtMotorController {
-    public void set(double speed);
+    void set(double speed);
+    void stopMotor();
+    double get();
+    void disable();
 }

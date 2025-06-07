@@ -124,51 +124,47 @@ public class DriveSubsystem extends SubsystemBase {
         canShuffleBoardActuate = false;
         switch (driveType) {
             case DIFFERENTIAL_DRIVE: {
-                final int FRONT_LEFT_ID = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.FRONT_LEFT.label;
-                final int FRONT_RIGHT_ID = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.FRONT_RIGHT.label;
-                final int BACK_RIGHT_ID = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.BACK_RIGHT.label;
-                final int BACK_LEFT_ID = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.BACK_LEFT.label;
-                differentialDriveMotors = Arrays.asList(new PtMotorController[] {
-                    Environment.roboticsFactory.createBrushedMotorController(FRONT_RIGHT_ID),
-                    Environment.roboticsFactory.createBrushedMotorController(BACK_RIGHT_ID),
-                    Environment.roboticsFactory.createBrushedMotorController(BACK_LEFT_ID),
-                    Environment.roboticsFactory.createBrushedMotorController(FRONT_LEFT_ID)
-                });
+                // final int FRONT_LEFT_ID = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.FRONT_LEFT.label;
+                // final int FRONT_RIGHT_ID = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.FRONT_RIGHT.label;
+                // final int BACK_RIGHT_ID = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.BACK_RIGHT.label;
+                // final int BACK_LEFT_ID = DriveConstants.DRIVE_MOTOR_CAN_OFFSET + DriveConstants.WheelIndex.BACK_LEFT.label;
+                // differentialDriveMotors = Arrays.asList(new PtMotorController[] {
+                //     Environment.roboticsFactory.createBrushedMotorController(FRONT_RIGHT_ID),
+                //     Environment.roboticsFactory.createBrushedMotorController(BACK_RIGHT_ID),
+                //     Environment.roboticsFactory.createBrushedMotorController(BACK_LEFT_ID),
+                //     Environment.roboticsFactory.createBrushedMotorController(FRONT_LEFT_ID)
+                // });
 
-                // We are using two different Configs for the left and right
-                // motors as sometimes they will be doing different things at
-                // times. For example, when turning, the left and the right side
-                // will be moving in the opposite directions.
+                // // We are using two different Configs for the left and right
+                // // motors as sometimes they will be doing different things at
+                // // times. For example, when turning, the left and the right side
+                // // will be moving in the opposite directions.
+                // SparkMaxConfig commonConfig = new SparkMaxConfig();
+                // commonConfig.idleMode(IdleMode.kBrake);
+                // SparkMaxConfig leftFollowerConfig = new SparkMaxConfig();
+                // SparkMaxConfig rightFollowerConfig = new SparkMaxConfig();
 
+                // SparkMaxConfig followConfig = new SparkMaxConfig();
+                // followConfig.idleMode(IdleMode.kBrake);
+                // followConfig.inverted(true);
 
-
-
-                SparkMaxConfig commonConfig = new SparkMaxConfig();
-                commonConfig.idleMode(IdleMode.kBrake);
-                SparkMaxConfig leftFollowerConfig = new SparkMaxConfig();
-                SparkMaxConfig rightFollowerConfig = new SparkMaxConfig();
-                leftFollowerConfig.follow(FRONT_LEFT_ID, true).apply(commonConfig);
-                rightFollowerConfig.follow(FRONT_RIGHT_ID).apply(commonConfig);
-                differentialDriveMotors.get(FRONT_LEFT_ID).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-                differentialDriveMotors.get(FRONT_RIGHT_ID).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
-
-                SparkMaxConfig followConfig = new SparkMaxConfig();
-                followConfig.idleMode(IdleMode.kBrake);
-                followConfig.inverted(true);
-                differentialDriveMotors.get(BACK_RIGHT_ID).configure(followConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-                differentialDriveMotors.get(BACK_LEFT_ID).configure(followConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                // leftFollowerConfig.follow(FRONT_LEFT_ID, true).apply(commonConfig);
+                // rightFollowerConfig.follow(FRONT_RIGHT_ID).apply(commonConfig);
+                // differentialDriveMotors.get(2).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                // differentialDriveMotors.get(3).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                // differentialDriveMotors.get(0).configure(followConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                // differentialDriveMotors.get(1).configure(followConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
 
-                // differentialDriveMotors.get(DriveConstants.WheelIndex.FRONT_LEFT.label).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-                // differentialDriveMotors.get(DriveConstants.WheelIndex.BACK_LEFT.label).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-                // differentialDriveMotors.get(DriveConstants.WheelIndex.FRONT_RIGHT.label).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-                // differentialDriveMotors.get(DriveConstants.WheelIndex.BACK_RIGHT.label).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                // // differentialDriveMotors.get(DriveConstants.WheelIndex.FRONT_LEFT.label).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                // // differentialDriveMotors.get(DriveConstants.WheelIndex.BACK_LEFT.label).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                // // differentialDriveMotors.get(DriveConstants.WheelIndex.FRONT_RIGHT.label).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+                // // differentialDriveMotors.get(DriveConstants.WheelIndex.BACK_RIGHT.label).configure(commonConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-                differentialDrive = new DifferentialDrive(differentialDriveMotors.get(2),
-                                                          differentialDriveMotors.get(0));
-                followDifferentialDrive = new DifferentialDrive(differentialDriveMotors.get(3),
-                                                                differentialDriveMotors.get(1));
+                // differentialDrive = new DifferentialDrive(differentialDriveMotors.get(2),
+                //                                           differentialDriveMotors.get(0));
+                // followDifferentialDrive = new DifferentialDrive(differentialDriveMotors.get(3),
+                //                                                 differentialDriveMotors.get(1));
                 break;
             }
             case SWERVE_DRIVE: {
@@ -191,17 +187,6 @@ public class DriveSubsystem extends SubsystemBase {
                     Environment.roboticsFactory.createBrushlessMotorController(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + FRONT_RIGHT),
                     Environment.roboticsFactory.createBrushlessMotorController(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + BACK_RIGHT),
                     Environment.roboticsFactory.createBrushlessMotorController(Constants.DriveConstants.PIVOT_MOTOR_CAN_OFFSET + BACK_LEFT)
-                });
-
-                // Initialize the pivot motors in a similar manner to how we
-                // initialized them for the 2020bot.
-                SparkMaxConfig config = new SparkMaxConfig();
-                config.idleMode(IdleMode.kBrake);
-                //TODO: This belongs in drive motor configuration for getting
-                //the drive speed in meters per second.
-                //config.encoder.velocityConversionFactor(getConversionFactor());
-                swervePivotMotors.forEach(motor -> {
-                    motor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
                 });
 
                 // Initialize CANcoders
@@ -257,7 +242,7 @@ public class DriveSubsystem extends SubsystemBase {
     public void initSendable(SendableBuilder builder) {
         super.initSendable(builder);
         System.out.printf("initalizing shuffleboard");
-        TriConsumer<List<SparkMax>, String, WheelIndex> addMotorHelper = (motors, name, index) -> {
+        TriConsumer<List<PtMotorController>, String, WheelIndex> addMotorHelper = (motors, name, index) -> {
             builder.addDoubleProperty(name,
                                       () -> motors.get(index.label).get(),
                                       (speed) -> {
@@ -304,11 +289,11 @@ public class DriveSubsystem extends SubsystemBase {
     void disable() {
         switch (driveType) {
             case DIFFERENTIAL_DRIVE:
-                differentialDriveMotors.forEach(SparkMax::disable);
+                differentialDriveMotors.forEach(PtMotorController::disable);
                 break;
             case SWERVE_DRIVE:
-                swerveDriveMotors.forEach(SparkMax::disable);
-                swervePivotMotors.forEach(SparkMax::disable);
+                swerveDriveMotors.forEach(PtMotorController::disable);
+                swervePivotMotors.forEach(PtMotorController::disable);
                 break;
         }
     }
