@@ -4,4 +4,6 @@ public interface PtRoboticsFactory {
     PtMotorController createBrushlessMotorController(int deviceID);
 
     PtMotorController createBrushedMotorController(int deviceID);
+
+    PtMagEncoder createMagEncoder(int deviceID);
 }

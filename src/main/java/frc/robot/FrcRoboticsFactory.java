@@ -1,6 +1,9 @@
 package frc.robot;
 
 import frc.robot.abstractions.PtMotorController;
+import frc.robot.abstractions.PtMagEncoder;
+
+import com.ctre.phoenix6.hardware.CANcoder;
 
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
@@ -29,5 +32,11 @@ public class FrcRoboticsFactory implements frc.robot.abstractions.PtRoboticsFact
         return motorController;
     }
 
+    @Override
+    public frc.robot.abstractions.PtMagEncoder createMagEncoder(int deviceID) {
+        var cancoder = new CANcoder(deviceID);
+        var magEncoder = new CANMagEncoder(cancoder);
+        return magEncoder;
+    }
 
 }

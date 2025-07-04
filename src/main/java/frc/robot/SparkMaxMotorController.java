@@ -25,15 +25,9 @@ public class SparkMaxMotorController implements frc.robot.abstractions.PtMotorCo
         sparkMax.stopMotor();
     }
 
-
-
     @Override
     public void disable() {
         sparkMax.disable();
     }
-
-
-
-
 
 }
