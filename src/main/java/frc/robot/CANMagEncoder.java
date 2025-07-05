@@ -2,7 +2,9 @@ package frc.robot;
 
 import com.ctre.phoenix6.hardware.CANcoder;
 
-public class CANMagEncoder implements frc.robot.abstractions.PtMagEncoder {
+import frc.robot.abstractions.PtMagEncoder;
+
+public class CANMagEncoder implements PtMagEncoder {
 
     private final CANcoder cancoder;
 

@@ -1,37 +1,29 @@
 package frc.robot.subsystems;
+import frc.robot.Environment;
 
 import java.util.Arrays;
 import java.util.List;
-
-import com.ctre.phoenix6.hardware.CANcoder;
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkBase.PersistMode;
-import com.revrobotics.spark.SparkBase.ResetMode;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.spark.config.SparkMaxConfig;
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
+
 import frc.robot.Constants;
-import frc.robot.Environment;
-import frc.robot.Constants.*;
+import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.DriveConstants.DriveType;
 import frc.robot.Constants.DriveConstants.WheelIndex;
 
 import frc.robot.abstractions.PtMotorController;
 import frc.robot.abstractions.PtMagEncoder;
 
-import frc.robot.CANMagEncoder;
+import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class DriveSubsystem extends SubsystemBase {
 
