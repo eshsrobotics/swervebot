@@ -2,6 +2,7 @@ package frc.robot;
 
 import frc.robot.abstractions.PtMotorController;
 import frc.robot.abstractions.PtMagEncoder;
+import frc.robot.abstractions.PtRoboticsFactory;
 
 import com.ctre.phoenix6.hardware.CANcoder;
 
@@ -11,10 +12,10 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
-public class FrcRoboticsFactory implements frc.robot.abstractions.PtRoboticsFactory {
+public class FrcRoboticsFactory implements PtRoboticsFactory {
 
     @Override
-    public frc.robot.abstractions.PtMotorController createBrushlessMotorController(int deviceID) {
+    public PtMotorController createBrushlessMotorController(int deviceID) {
         return createMotorController(deviceID, SparkMax.MotorType.kBrushless);
     }
 
@@ -23,7 +24,7 @@ public class FrcRoboticsFactory implements frc.robot.abstractions.PtRoboticsFact
         return createMotorController(deviceID, SparkMax.MotorType.kBrushed);
     }
 
-    private frc.robot.abstractions.PtMotorController createMotorController(int deviceID, SparkMax.MotorType motorType) {
+    private PtMotorController createMotorController(int deviceID, SparkMax.MotorType motorType) {
         var config = new SparkMaxConfig();
         config.idleMode(IdleMode.kBrake);
         var sparkMax = new SparkMax(deviceID, motorType);
@@ -33,7 +34,7 @@ public class FrcRoboticsFactory implements frc.robot.abstractions.PtRoboticsFact
     }
 
     @Override
-    public frc.robot.abstractions.PtMagEncoder createMagEncoder(int deviceID) {
+    public PtMagEncoder createMagEncoder(int deviceID) {
         var cancoder = new CANcoder(deviceID);
         var magEncoder = new CANMagEncoder(cancoder);
         return magEncoder;

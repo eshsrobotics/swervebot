@@ -27,7 +27,11 @@ import frc.robot.Environment;
 import frc.robot.Constants.*;
 import frc.robot.Constants.DriveConstants.DriveType;
 import frc.robot.Constants.DriveConstants.WheelIndex;
+
 import frc.robot.abstractions.PtMotorController;
+import frc.robot.abstractions.PtMagEncoder;
+
+import frc.robot.CANMagEncoder;
 
 public class DriveSubsystem extends SubsystemBase {
 
@@ -65,7 +69,7 @@ public class DriveSubsystem extends SubsystemBase {
      *
      * <p> This list will be null if we are using a differential drive. </p>
      */
-    private List<CANcoder> swerveCANCODER;
+    private List<PtMagEncoder> swerveCANCODER;
 
     /**
      * Our CANCoders measure absolute angles that don't change even when the
@@ -190,11 +194,11 @@ public class DriveSubsystem extends SubsystemBase {
                 });
 
                 // Initialize CANcoders
-                swerveCANCODER = Arrays.asList(new CANcoder[] {
-                    new CANcoder(Constants.DriveConstants.PIVOT_MOTOR_CAN_CODER_CAN_ID_OFFSET + FRONT_LEFT),
-                    new CANcoder(Constants.DriveConstants.PIVOT_MOTOR_CAN_CODER_CAN_ID_OFFSET + FRONT_RIGHT),
-                    new CANcoder(Constants.DriveConstants.PIVOT_MOTOR_CAN_CODER_CAN_ID_OFFSET + BACK_RIGHT),
-                    new CANcoder(Constants.DriveConstants.PIVOT_MOTOR_CAN_CODER_CAN_ID_OFFSET + BACK_LEFT)
+                swerveCANCODER = Arrays.asList(new PtMagEncoder[] {
+                    Environment.roboticsFactory.createMagEncoder(Constants.DriveConstants.PIVOT_MOTOR_CAN_CODER_CAN_ID_OFFSET + FRONT_LEFT),
+                    Environment.roboticsFactory.createMagEncoder(Constants.DriveConstants.PIVOT_MOTOR_CAN_CODER_CAN_ID_OFFSET + FRONT_RIGHT),
+                    Environment.roboticsFactory.createMagEncoder(Constants.DriveConstants.PIVOT_MOTOR_CAN_CODER_CAN_ID_OFFSET + BACK_RIGHT),
+                    Environment.roboticsFactory.createMagEncoder(Constants.DriveConstants.PIVOT_MOTOR_CAN_CODER_CAN_ID_OFFSET + BACK_LEFT)
                 });
 
                 pivotMotorPIDControllers = Arrays.asList(new PIDController[] {
@@ -411,11 +415,7 @@ public class DriveSubsystem extends SubsystemBase {
                 // Our PID setpoints come from the SwerveModuleStates.
                 double[] CANCoderAnglesRadians = new double[4];
                 for (int i = 0; i < 4; i++) {
-                    var temporary = swerveCANCODER.get(i).getAbsolutePosition(true);
-                    // Removed the refresh call because getAbsolutePosition() already refreshes
-                    // automatically.
-                    // temporary.refresh();
-                    CANCoderAnglesRadians[i] = temporary.getValueAsDouble() * 2 * Math.PI;
+                    CANCoderAnglesRadians[i] = swerveCANCODER.get(i).getAbsolutePositionAsDouble();
 
                     // TODO: We need to subtract the offset to the CANCoder angle.
                 }
