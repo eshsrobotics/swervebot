@@ -17,6 +17,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -258,6 +259,13 @@ public class DriveSubsystem extends SubsystemBase {
                                           canShuffleBoardActuate = true;
                                       });
         };
+
+        TriConsumer<List<CANcoder>, String, WheelIndex> addCANcoderHelper = (cancoders, name, index) -> {
+            builder.addDoubleProperty(name, 
+                                      () -> swerveCANCODER.get(index.label).getAbsolutePosition().getValue().in(Units.Degrees),
+                                      null);
+        };
+
         builder.setSmartDashboardType(this.driveType.toString() == "DIFFERENTIAL_DRIVE" ? "DifferentialDrive" : "SwerveDrive");
         switch (driveType) {
             case DIFFERENTIAL_DRIVE:
@@ -281,6 +289,12 @@ public class DriveSubsystem extends SubsystemBase {
                 addMotorHelper.accept(swervePivotMotors, "FL Pivot", WheelIndex.FRONT_LEFT);
                 addMotorHelper.accept(swervePivotMotors, "BR Pivot", WheelIndex.BACK_RIGHT);
                 addMotorHelper.accept(swervePivotMotors, "BL Pivot", WheelIndex.BACK_LEFT);
+
+                // Add the cancoders to the shuffleboard.
+                addCANcoderHelper.accept(swerveCANCODER, "FR Angle", WheelIndex.FRONT_RIGHT);
+                addCANcoderHelper.accept(swerveCANCODER, "FL Angle", WheelIndex.FRONT_LEFT);
+                addCANcoderHelper.accept(swerveCANCODER, "BR Angle", WheelIndex.BACK_RIGHT);
+                addCANcoderHelper.accept(swerveCANCODER, "BL Angle", WheelIndex.BACK_LEFT);
                 break;
         }
         builder.setActuator(true);
