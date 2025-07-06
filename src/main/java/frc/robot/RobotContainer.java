@@ -43,6 +43,9 @@ public class RobotContainer {
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
   public RobotContainer() {
+
+    // Create non-interactive commands.
+
     // Configure the trigger bindings
     configureBindings();
   }
@@ -74,6 +77,10 @@ public class RobotContainer {
     // // pressed,
     // // cancelling on release.
     // m_driverController.b().whileTrue(m_exampleSubsystem.exampleMethodCommand());
+  }
+
+  public void stopAllMotors() {
+    m_driveSubsystem.stopAllMotors();
   }
 
   /**

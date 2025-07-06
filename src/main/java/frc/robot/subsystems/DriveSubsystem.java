@@ -225,6 +225,11 @@ public class DriveSubsystem extends SubsystemBase {
         SmartDashboard.putData(this);
     }
 
+    public void stopAllMotors() {
+        this.swerveDriveMotors.forEach(SparkMax::stopMotor);
+        this.swervePivotMotors.forEach(SparkMax::stopMotor);
+    }
+
     private static double getConversionFactor() {
          // - A conversion factor of 1.0 will bypass conversion (i.e.,
         //   getVelocity() would return values in units of RPM.)
@@ -261,7 +266,7 @@ public class DriveSubsystem extends SubsystemBase {
         };
 
         TriConsumer<List<CANcoder>, String, WheelIndex> addCANcoderHelper = (cancoders, name, index) -> {
-            builder.addDoubleProperty(name, 
+            builder.addDoubleProperty(name,
                                       () -> swerveCANCODER.get(index.label).getAbsolutePosition().getValue().in(Units.Degrees),
                                       null);
         };
