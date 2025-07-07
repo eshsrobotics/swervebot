@@ -10,8 +10,14 @@ dependencies {
     implementation project(':core')
 }
 
-// Repository for dependencies
 repositories {
+    maven {
+        url 'https://frcmaven.wpi.edu/artifactory/release'
+    }
+    // Include this if you also want development versions (optional)
+    maven {
+        url 'https://frcmaven.wpi.edu/artifactory/development'
+    }
     mavenCentral()
 }
 

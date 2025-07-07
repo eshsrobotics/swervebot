@@ -7,7 +7,7 @@ group = 'frc.robotFramework'
 version = '1.0.0'
 
 repositories {
-     maven {
+    maven {
         url 'https://frcmaven.wpi.edu/artifactory/release'
     }
     // Include this if you also want development versions (optional)

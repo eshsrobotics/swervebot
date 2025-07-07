@@ -70,7 +70,7 @@ goto fail
 :execute
 @rem Setup the command line
 
-set CLASSPATH=%APP_HOME%\lib\main.jar;%APP_HOME%\lib\core-1.0.0.jar
+set CLASSPATH=%APP_HOME%\lib\main.jar;%APP_HOME%\lib\core-1.0.0.jar;%APP_HOME%\lib\wpilibj-java-2025.2.1.jar;%APP_HOME%\lib\wpimath-java-2025.2.1.jar;%APP_HOME%\lib\ntcore-java-2025.2.1.jar;%APP_HOME%\lib\cscore-java-2025.2.1.jar;%APP_HOME%\lib\cameraserver-java-2025.2.1.jar;%APP_HOME%\lib\hal-java-2025.2.1.jar;%APP_HOME%\lib\wpinet-java-2025.2.1.jar;%APP_HOME%\lib\wpiutil-java-2025.2.1.jar;%APP_HOME%\lib\apriltag-java-2025.2.1.jar;%APP_HOME%\lib\wpiunits-java-2025.2.1.jar;%APP_HOME%\lib\epilogue-runtime-java-2025.2.1.jar;%APP_HOME%\lib\opencv-java-4.10.0-3.jar;%APP_HOME%\lib\ejml-simple-0.43.1.jar;%APP_HOME%\lib\jackson-core-2.15.2.jar;%APP_HOME%\lib\jackson-databind-2.15.2.jar;%APP_HOME%\lib\jackson-annotations-2.15.2.jar;%APP_HOME%\lib\quickbuf-runtime-1.3.3.jar;%APP_HOME%\lib\ejml-fsparse-0.43.1.jar;%APP_HOME%\lib\ejml-fdense-0.43.1.jar;%APP_HOME%\lib\ejml-dsparse-0.43.1.jar;%APP_HOME%\lib\ejml-ddense-0.43.1.jar;%APP_HOME%\lib\ejml-cdense-0.43.1.jar;%APP_HOME%\lib\ejml-zdense-0.43.1.jar;%APP_HOME%\lib\ejml-core-0.43.1.jar
 
 
 @rem Execute main
