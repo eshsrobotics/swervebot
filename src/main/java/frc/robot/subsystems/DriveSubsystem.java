@@ -76,16 +76,21 @@ public class DriveSubsystem extends SubsystemBase {
      * motor needs in order for the swerve module to face directly forward
      * (angle = zero degrees.)
      */
-    private double[] CAN_CODER_ANGLE_OFFSETS = { // TODO: These numbers are made-up.
-        -61,  // FRONT_LEFT
-        -59,  // FRONT_RIGHT
-        0,    // BACK_RIGHT
-        12    // BACK_LEFT
+    private double[] CAN_CODER_ANGLE_OFFSETS = { // These values are all in degrees.
+        21.53,  // BACK_RIGHT
+        74.62,  // BACK_LEFT
+        83.50,  // FRONT_LEFT
+        111.80, // FRONT_RIGHT
     };
 
     /**
      * PID controllers. We'll use four PID Controllers with the same constants
-     * for each pivot motor. We'll use the CANCoder's absolute angle as the measurement.
+     * for each pivot motor. 
+     *
+     * We'll use the CANCoder's absolute angle as the measurement, and the
+     * inverse kinematic values calculated from our ChassisSpeeds (see
+     * {@link clampedForwardBack} and friends for details) to determine the PID
+     * setpoints.
      */
     private List<PIDController> pivotMotorPIDControllers;
 
@@ -95,8 +100,30 @@ public class DriveSubsystem extends SubsystemBase {
      */
     private boolean canShuffleBoardActuate;
 
+    /** 
+     * A calculator to convert the four individual swerve module angles and
+     * speeds to and from a ChassisSpeeds object.
+     */
+    private SwerveDriveKinematics kinematics;
+
+    /**
+     * The velocity that we want the chassis to *eventually* match in the
+     * forward/backward axis.  +1.0 is 100% forward, -1.0 is 100% backward.
+     *
+     * Who is responsible for reaching goal?  Why, {@link periodic()} is, of
+     * course!
+     */
     private double clampedForwardBack;
+
+    /**
+     * The velocity that we want the chassis to *eventually* match in the left/right
+     * axis.  +1.0 is 100% right, -1.0 is 100% left.
+     */
     private double clampedLeftRight;
+    
+    /**
+     * The angular velocity we want the chassis to (eventually) match as it turns. 
+     */
     private double clampedTurn;
 
     /**
@@ -219,6 +246,11 @@ public class DriveSubsystem extends SubsystemBase {
                     pivotMotorPIDControllers.get(i).setTolerance(Constants.DriveConstants.PIVOT_ANGLE_TOLERANCE_RADIANS);
                     pivotMotorPIDControllers.get(i).enableContinuousInput(-Math.PI, Math.PI);
                 }
+                this.kinematics =
+                    new SwerveDriveKinematics(Constants.DriveConstants.SWERVE_MODULE_POSITIONS.get(FRONT_LEFT),
+                                              Constants.DriveConstants.SWERVE_MODULE_POSITIONS.get(FRONT_RIGHT),
+                                              Constants.DriveConstants.SWERVE_MODULE_POSITIONS.get(BACK_RIGHT),
+                                              Constants.DriveConstants.SWERVE_MODULE_POSITIONS.get(BACK_LEFT));
                 break;
             }
         }
@@ -229,6 +261,33 @@ public class DriveSubsystem extends SubsystemBase {
         this.swerveDriveMotors.forEach(SparkMax::stopMotor);
         this.swervePivotMotors.forEach(SparkMax::stopMotor);
     }
+
+    public void resetToForwardPosition() {
+        // Our conundrum: 
+        //
+        // 1. The periodic() function wants three "inputs": clampedForwardBack,
+        //    clampedLeftRight, and clampedTurn.
+        //
+        // 2. We have the absolute angles that the CANCoders are supposed to
+        //    have when the swerve modules are all facing forward.  That's
+        //    *four* numbers -- see CAN_CODER_ANGLE_OFFSETS[].
+        //
+        // 3. We need to turn those CANCoder angles into the three numbers that
+        //    periodic() actually understands.  How do we do it?
+        //
+        //    I'm thinking kinematics: we turn four angles and speeds (the
+        //    speeds are all 0) into an overall ChassisSpeeds.
+        final int BACK_RIGHT = DriveConstants.WheelIndex.BACK_RIGHT.label;
+        final int BACK_LEFT = DriveConstants.WheelIndex.BACK_LEFT.label;
+        final int FRONT_LEFT = DriveConstants.WheelIndex.FRONT_LEFT.label;
+        final int FRONT_RIGHT = DriveConstants.WheelIndex.FRONT_RIGHT.label;
+
+        SwerveModuleState[] swerveModuleStates = new SwerveModuleState[] {
+            new SwerveModuleState(0.0, Units.degreesToRadians(CAN_CODER_ANGLE_OFFSETS[BACK_RIGHT])),
+            new SwerveModuleState(0.0, Units.degreesToRadians(CAN_CODER_ANGLE_OFFSETS[BACK_LEFT])),
+            new SwerveModuleState(0.0, Units.degreesToRadians(CAN_CODER_ANGLE_OFFSETS[FRONT_LEFT])),
+            new SwerveModuleState(0.0, Units.degreesToRadians(CAN_CODER_ANGLE_OFFSETS[FRONT_RIGHT]))
+        };
 
     private static double getConversionFactor() {
          // - A conversion factor of 1.0 will bypass conversion (i.e.,
@@ -325,7 +384,8 @@ public class DriveSubsystem extends SubsystemBase {
     }
 
     /**
-     * Drive the robot according to the given speeds.
+     * Drive the robot according to the given speeds.  This is meant to be used
+     * during commands.
      *
      * @param xAxis The speed at which the robot should move left or right. 1.0
      * should be full speed to the right and -1.0 should be full speed to the
@@ -338,8 +398,8 @@ public class DriveSubsystem extends SubsystemBase {
      */
     public void drive(double xAxis, double yAxis, double turn) {
         clampedForwardBack = MathUtil.clamp(xAxis, -1.0, 1.0);
-        clampedLeftRight = MathUtil.clamp(yAxis, -0.8, 0.8);
-        clampedTurn = MathUtil.clamp(turn, -0.72, 0.72);
+        clampedLeftRight = MathUtil.clamp(yAxis, -1.0, 1.0); // 
+        clampedTurn = MathUtil.clamp(turn, -1.0, 1.0);
     }
 
     /**
@@ -411,7 +471,7 @@ public class DriveSubsystem extends SubsystemBase {
                 break;
             case SWERVE_DRIVE:
                 // Convert the human input into a ChassisSpeeds object giving us
-                // the overall bearing of the chassis.
+                // the overall bearing of the chassis. The parameters for the ChassisSpeeds are velocities.
                 //
                 // We will always be driving using values from the drive().
                 ChassisSpeeds movement =
@@ -421,16 +481,9 @@ public class DriveSubsystem extends SubsystemBase {
 
                 // With inverse kinematics, convert the overall chassis speed
                 // into the speeds and angles for all four swerve modules.
-                final int FRONT_LEFT = DriveConstants.WheelIndex.FRONT_LEFT.label;
-                final int FRONT_RIGHT = DriveConstants.WheelIndex.FRONT_RIGHT.label;
-                final int BACK_RIGHT = DriveConstants.WheelIndex.BACK_RIGHT.label;
-                final int BACK_LEFT = DriveConstants.WheelIndex.BACK_LEFT.label;
-                SwerveDriveKinematics kinematics =
-                    new SwerveDriveKinematics(Constants.DriveConstants.SWERVE_MODULE_POSITIONS.get(FRONT_LEFT),
-                                              Constants.DriveConstants.SWERVE_MODULE_POSITIONS.get(FRONT_RIGHT),
-                                              Constants.DriveConstants.SWERVE_MODULE_POSITIONS.get(BACK_RIGHT),
-                                              Constants.DriveConstants.SWERVE_MODULE_POSITIONS.get(BACK_LEFT));
-
+                //
+                // The .toSwerveModuleStates function is what does inverse kinematics to get 
+                // the speed and angle of the individual modules.
                 SwerveModuleState[] swerveStates = kinematics.toSwerveModuleStates(movement);
 
                 // Grab CANCoder measurements.
