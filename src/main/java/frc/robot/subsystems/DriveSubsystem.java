@@ -14,6 +14,7 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -283,11 +284,11 @@ public class DriveSubsystem extends SubsystemBase {
         final int FRONT_RIGHT = DriveConstants.WheelIndex.FRONT_RIGHT.label;
 
         SwerveModuleState[] swerveModuleStates = new SwerveModuleState[] {
-            new SwerveModuleState(0.0, Units.degreesToRadians(CAN_CODER_ANGLE_OFFSETS[BACK_RIGHT])),
-            new SwerveModuleState(0.0, Units.degreesToRadians(CAN_CODER_ANGLE_OFFSETS[BACK_LEFT])),
-            new SwerveModuleState(0.0, Units.degreesToRadians(CAN_CODER_ANGLE_OFFSETS[FRONT_LEFT])),
-            new SwerveModuleState(0.0, Units.degreesToRadians(CAN_CODER_ANGLE_OFFSETS[FRONT_RIGHT]))
-        };
+            new SwerveModuleState(0.0, new Rotation2d(Math.toRadians(CAN_CODER_ANGLE_OFFSETS[BACK_RIGHT]))),
+            new SwerveModuleState(0.0, new Rotation2d(Math.toRadians(CAN_CODER_ANGLE_OFFSETS[BACK_LEFT]))),
+            new SwerveModuleState(0.0, new Rotation2d(Math.toRadians(CAN_CODER_ANGLE_OFFSETS[FRONT_LEFT]))),
+            new SwerveModuleState(0.0, new Rotation2d(Math.toRadians(CAN_CODER_ANGLE_OFFSETS[FRONT_RIGHT])))};
+    }
 
     private static double getConversionFactor() {
          // - A conversion factor of 1.0 will bypass conversion (i.e.,
