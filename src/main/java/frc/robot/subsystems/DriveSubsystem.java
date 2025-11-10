@@ -101,6 +101,13 @@ public class DriveSubsystem extends SubsystemBase {
      */
     private boolean canShuffleBoardActuate;
 
+    /**
+     * The purpose of periodic is to meet these goalStates that we set, whether through
+     * a ChassisSpeeds that gets converted to SwerveDriveStates or by the module states
+     * directly. 
+     */
+    private List<SwerveModuleState> goalStates;
+    
     /** 
      * A calculator to convert the four individual swerve module angles and
      * speeds to and from a ChassisSpeeds object.
@@ -247,6 +254,9 @@ public class DriveSubsystem extends SubsystemBase {
                     pivotMotorPIDControllers.get(i).setTolerance(Constants.DriveConstants.PIVOT_ANGLE_TOLERANCE_RADIANS);
                     pivotMotorPIDControllers.get(i).enableContinuousInput(-Math.PI, Math.PI);
                 }
+
+                // We only need one SwerveDriveKinematics object for our forward and inverse kinematics
+                // caluclations, and there are concerns that it may be expensive to make more than one.
                 this.kinematics =
                     new SwerveDriveKinematics(Constants.DriveConstants.SWERVE_MODULE_POSITIONS.get(FRONT_LEFT),
                                               Constants.DriveConstants.SWERVE_MODULE_POSITIONS.get(FRONT_RIGHT),
@@ -263,6 +273,13 @@ public class DriveSubsystem extends SubsystemBase {
         this.swervePivotMotors.forEach(SparkMax::stopMotor);
     }
 
+    /**
+     * This function is used for reseting the robot to the 0th position where all angles
+     * of the pivot motors are set to their starting value. 
+     * 
+     * This is most useful for autonomous so that we can code the robot to move
+     * based off of those origin angles. It also works well as a testing resource.
+     */
     public void resetToForwardPosition() {
         // Our conundrum: 
         //
@@ -288,8 +305,14 @@ public class DriveSubsystem extends SubsystemBase {
             new SwerveModuleState(0.0, new Rotation2d(Math.toRadians(CAN_CODER_ANGLE_OFFSETS[BACK_LEFT]))),
             new SwerveModuleState(0.0, new Rotation2d(Math.toRadians(CAN_CODER_ANGLE_OFFSETS[FRONT_LEFT]))),
             new SwerveModuleState(0.0, new Rotation2d(Math.toRadians(CAN_CODER_ANGLE_OFFSETS[FRONT_RIGHT])))};
+
+        goalStates = Arrays.asList(swerveModuleStates);
     }
 
+    /**
+     * Returns a factor that we can use to convert an angular speed of the wheels
+     * from RPM to meters per second.
+     */
     private static double getConversionFactor() {
          // - A conversion factor of 1.0 will bypass conversion (i.e.,
         //   getVelocity() would return values in units of RPM.)
@@ -398,9 +421,26 @@ public class DriveSubsystem extends SubsystemBase {
      * clockwise and -1.0 is full speed counterclockwise.
      */
     public void drive(double xAxis, double yAxis, double turn) {
-        clampedForwardBack = MathUtil.clamp(xAxis, -1.0, 1.0);
-        clampedLeftRight = MathUtil.clamp(yAxis, -1.0, 1.0); // 
-        clampedTurn = MathUtil.clamp(turn, -1.0, 1.0);
+        double clampedForwardBack = MathUtil.clamp(xAxis, -1.0, 1.0);
+        double clampedLeftRight = MathUtil.clamp(yAxis, -1.0, 1.0); // 
+        double clampedTurn = MathUtil.clamp(turn, -1.0, 1.0);
+
+        // Convert the human input into a ChassisSpeeds object giving us
+        // the overall bearing of the chassis. The parameters for the ChassisSpeeds are velocities.
+        //
+        // We will always be driving using values from the drive().        
+       
+        ChassisSpeeds movement =
+                    new ChassisSpeeds(Constants.DriveConstants.SWERVE_DRIVE_MAX_DRIVING_SPEED_METERS_PER_SECOND * clampedForwardBack,
+                                      Constants.DriveConstants.SWERVE_DRIVE_MAX_DRIVING_SPEED_METERS_PER_SECOND * clampedLeftRight,
+                                      Constants.DriveConstants.SWERVE_DRIVE_MAX_TURNING_SPEED_RADIANS_PER_SECOND * clampedTurn);
+        
+                                      // With inverse kinematics, convert the overall chassis speed
+        // into the speeds and angles for all four swerve modules.
+        //
+        // The .toSwerveModuleStates function is what does inverse kinematics to get 
+        // the speed and angle of the individual modules.
+        goalStates = Arrays.asList(kinematics.toSwerveModuleStates(movement));
     }
 
     /**
@@ -471,21 +511,7 @@ public class DriveSubsystem extends SubsystemBase {
 
                 break;
             case SWERVE_DRIVE:
-                // Convert the human input into a ChassisSpeeds object giving us
-                // the overall bearing of the chassis. The parameters for the ChassisSpeeds are velocities.
-                //
-                // We will always be driving using values from the drive().
-                ChassisSpeeds movement =
-                    new ChassisSpeeds(Constants.DriveConstants.SWERVE_DRIVE_MAX_DRIVING_SPEED_METERS_PER_SECOND * clampedForwardBack,
-                                      Constants.DriveConstants.SWERVE_DRIVE_MAX_DRIVING_SPEED_METERS_PER_SECOND * clampedLeftRight,
-                                      Constants.DriveConstants.SWERVE_DRIVE_MAX_TURNING_SPEED_RADIANS_PER_SECOND * clampedTurn);
-
-                // With inverse kinematics, convert the overall chassis speed
-                // into the speeds and angles for all four swerve modules.
-                //
-                // The .toSwerveModuleStates function is what does inverse kinematics to get 
-                // the speed and angle of the individual modules.
-                SwerveModuleState[] swerveStates = kinematics.toSwerveModuleStates(movement);
+                // Our primary input for driving is the goalStates[] that we set in the drive function.
 
                 // Grab CANCoder measurements.
                 // Our PID setpoints come from the SwerveModuleStates.
@@ -501,10 +527,9 @@ public class DriveSubsystem extends SubsystemBase {
                 }
 
                 // TODO: Use the CANCoder's measurements for the PID
-                // controllers. We still don't have the idea of goal angles (our
-                // setpoint) yet.
+                // controllers. 
                 //
-                // Later, we should InItsendable to send our piviot angles to
+                // Later, we should InItsendable to send our pivot angles to
                 // the suffleboard for easier debugging.
 
                 //
@@ -513,14 +538,14 @@ public class DriveSubsystem extends SubsystemBase {
                     var pivotMotorPIDController = pivotMotorPIDControllers.get(i);
 
                     // Get the swerve module state.
-                    var swerveModuleState = swerveStates[i];
+                    var swerveModuleState = goalStates.get(i);
 
                     // Get the pivot motor.
                     var pivotMotor = swervePivotMotors.get(i);
 
                     // // Set the PID controller's setpoint to the angle of the
-                    // // swerve module state.
-                    // pivotMotorPIDController.setSetpoint(swerveModuleState.angle.getDegrees());
+                    // swerve module state.
+                    pivotMotorPIDController.setSetpoint(swerveModuleState.angle.getRadians());
 
                     if (pivotMotorPIDController.atSetpoint()) {
                         // If the PID controller is at the setpoint, then we
