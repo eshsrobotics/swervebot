@@ -18,7 +18,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.units.Units;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -201,10 +201,10 @@ public class DriveSubsystem extends SubsystemBase {
                 break;
             }
             case SWERVE_DRIVE: {
-                final int FRONT_LEFT = DriveConstants.WheelIndex.FRONT_LEFT.label;
-                final int FRONT_RIGHT = DriveConstants.WheelIndex.FRONT_RIGHT.label;
                 final int BACK_RIGHT = DriveConstants.WheelIndex.BACK_RIGHT.label;
                 final int BACK_LEFT = DriveConstants.WheelIndex.BACK_LEFT.label;
+                final int FRONT_LEFT = DriveConstants.WheelIndex.FRONT_LEFT.label;
+                final int FRONT_RIGHT = DriveConstants.WheelIndex.FRONT_RIGHT.label;
 
                 // Initialize drive motors
                 swerveDriveMotors = Arrays.asList(new SparkMax[] {
@@ -258,10 +258,10 @@ public class DriveSubsystem extends SubsystemBase {
                 // We only need one SwerveDriveKinematics object for our forward and inverse kinematics
                 // caluclations, and there are concerns that it may be expensive to make more than one.
                 this.kinematics =
-                    new SwerveDriveKinematics(Constants.DriveConstants.SWERVE_MODULE_POSITIONS.get(FRONT_LEFT),
-                                              Constants.DriveConstants.SWERVE_MODULE_POSITIONS.get(FRONT_RIGHT),
-                                              Constants.DriveConstants.SWERVE_MODULE_POSITIONS.get(BACK_RIGHT),
-                                              Constants.DriveConstants.SWERVE_MODULE_POSITIONS.get(BACK_LEFT));
+                    new SwerveDriveKinematics(Constants.DriveConstants.SWERVE_MODULE_POSITIONS.get(BACK_RIGHT),
+                                              Constants.DriveConstants.SWERVE_MODULE_POSITIONS.get(BACK_LEFT),
+                                              Constants.DriveConstants.SWERVE_MODULE_POSITIONS.get(FRONT_LEFT),
+                                              Constants.DriveConstants.SWERVE_MODULE_POSITIONS.get(FRONT_RIGHT));
                 break;
             }
         }
@@ -281,20 +281,6 @@ public class DriveSubsystem extends SubsystemBase {
      * based off of those origin angles. It also works well as a testing resource.
      */
     public void resetToForwardPosition() {
-        // Our conundrum: 
-        //
-        // 1. The periodic() function wants three "inputs": clampedForwardBack,
-        //    clampedLeftRight, and clampedTurn.
-        //
-        // 2. We have the absolute angles that the CANCoders are supposed to
-        //    have when the swerve modules are all facing forward.  That's
-        //    *four* numbers -- see CAN_CODER_ANGLE_OFFSETS[].
-        //
-        // 3. We need to turn those CANCoder angles into the three numbers that
-        //    periodic() actually understands.  How do we do it?
-        //
-        //    I'm thinking kinematics: we turn four angles and speeds (the
-        //    speeds are all 0) into an overall ChassisSpeeds.
         final int BACK_RIGHT = DriveConstants.WheelIndex.BACK_RIGHT.label;
         final int BACK_LEFT = DriveConstants.WheelIndex.BACK_LEFT.label;
         final int FRONT_LEFT = DriveConstants.WheelIndex.FRONT_LEFT.label;
@@ -350,7 +336,10 @@ public class DriveSubsystem extends SubsystemBase {
 
         TriConsumer<List<CANcoder>, String, WheelIndex> addCANcoderHelper = (cancoders, name, index) -> {
             builder.addDoubleProperty(name,
-                                      () -> swerveCANCODER.get(index.label).getAbsolutePosition().getValue().in(Units.Degrees),
+                                      () -> swerveCANCODER.get(index.label)
+                                                          .getAbsolutePosition()
+                                                          .getValue()
+                                                          .in(edu.wpi.first.units.Units.Degrees),
                                       null);
         };
 
@@ -359,30 +348,30 @@ public class DriveSubsystem extends SubsystemBase {
             case DIFFERENTIAL_DRIVE:
 
                 // Add the differential drive motors to the shuffleboard.
-                addMotorHelper.accept(differentialDriveMotors, "FR Motor", WheelIndex.FRONT_RIGHT);
-                addMotorHelper.accept(differentialDriveMotors, "FL Motor", WheelIndex.FRONT_LEFT);
                 addMotorHelper.accept(differentialDriveMotors, "BR Motor", WheelIndex.BACK_RIGHT);
                 addMotorHelper.accept(differentialDriveMotors, "BL Motor", WheelIndex.BACK_LEFT);
+                addMotorHelper.accept(differentialDriveMotors, "FL Motor", WheelIndex.FRONT_LEFT);
+                addMotorHelper.accept(differentialDriveMotors, "FR Motor", WheelIndex.FRONT_RIGHT);
                 break;
             case SWERVE_DRIVE:
 
                 // Add the swerve drive motors to the shuffleboard.
-                addMotorHelper.accept(swerveDriveMotors, "FR Drive", WheelIndex.FRONT_RIGHT);
-                addMotorHelper.accept(swerveDriveMotors, "FL Drive", WheelIndex.FRONT_LEFT);
                 addMotorHelper.accept(swerveDriveMotors, "BR Drive", WheelIndex.BACK_RIGHT);
                 addMotorHelper.accept(swerveDriveMotors, "BL Drive", WheelIndex.BACK_LEFT);
+                addMotorHelper.accept(swerveDriveMotors, "FL Drive", WheelIndex.FRONT_LEFT);
+                addMotorHelper.accept(swerveDriveMotors, "FR Drive", WheelIndex.FRONT_RIGHT);
 
                 // Add the swerve pivot motors to the shuffleboard.
-                addMotorHelper.accept(swervePivotMotors, "FR Pivot", WheelIndex.FRONT_RIGHT);
-                addMotorHelper.accept(swervePivotMotors, "FL Pivot", WheelIndex.FRONT_LEFT);
                 addMotorHelper.accept(swervePivotMotors, "BR Pivot", WheelIndex.BACK_RIGHT);
                 addMotorHelper.accept(swervePivotMotors, "BL Pivot", WheelIndex.BACK_LEFT);
+                addMotorHelper.accept(swervePivotMotors, "FL Pivot", WheelIndex.FRONT_LEFT);
+                addMotorHelper.accept(swervePivotMotors, "FR Pivot", WheelIndex.FRONT_RIGHT);
 
                 // Add the cancoders to the shuffleboard.
-                addCANcoderHelper.accept(swerveCANCODER, "FR Angle", WheelIndex.FRONT_RIGHT);
-                addCANcoderHelper.accept(swerveCANCODER, "FL Angle", WheelIndex.FRONT_LEFT);
                 addCANcoderHelper.accept(swerveCANCODER, "BR Angle", WheelIndex.BACK_RIGHT);
                 addCANcoderHelper.accept(swerveCANCODER, "BL Angle", WheelIndex.BACK_LEFT);
+                addCANcoderHelper.accept(swerveCANCODER, "FL Angle", WheelIndex.FRONT_LEFT);
+                addCANcoderHelper.accept(swerveCANCODER, "FR Angle", WheelIndex.FRONT_RIGHT);
                 break;
         }
         builder.setActuator(true);
@@ -431,11 +420,11 @@ public class DriveSubsystem extends SubsystemBase {
         // We will always be driving using values from the drive().        
        
         ChassisSpeeds movement =
-                    new ChassisSpeeds(Constants.DriveConstants.SWERVE_DRIVE_MAX_DRIVING_SPEED_METERS_PER_SECOND * clampedForwardBack,
-                                      Constants.DriveConstants.SWERVE_DRIVE_MAX_DRIVING_SPEED_METERS_PER_SECOND * clampedLeftRight,
-                                      Constants.DriveConstants.SWERVE_DRIVE_MAX_TURNING_SPEED_RADIANS_PER_SECOND * clampedTurn);
-        
-                                      // With inverse kinematics, convert the overall chassis speed
+            new ChassisSpeeds(Constants.DriveConstants.SWERVE_DRIVE_MAX_DRIVING_SPEED_METERS_PER_SECOND * clampedForwardBack,
+                              Constants.DriveConstants.SWERVE_DRIVE_MAX_DRIVING_SPEED_METERS_PER_SECOND * clampedLeftRight,
+                              Constants.DriveConstants.SWERVE_DRIVE_MAX_TURNING_SPEED_RADIANS_PER_SECOND * clampedTurn);
+
+        // With inverse kinematics, convert the overall chassis speed
         // into the speeds and angles for all four swerve modules.
         //
         // The .toSwerveModuleStates function is what does inverse kinematics to get 
@@ -517,11 +506,11 @@ public class DriveSubsystem extends SubsystemBase {
                 // Our PID setpoints come from the SwerveModuleStates.
                 double[] CANCoderAnglesRadians = new double[4];
                 for (int i = 0; i < 4; i++) {
-                    var temporary = swerveCANCODER.get(i).getAbsolutePosition(true);
+                    var rotations = swerveCANCODER.get(i).getAbsolutePosition(true);
                     // Removed the refresh call because getAbsolutePosition() already refreshes
                     // automatically.
-                    // temporary.refresh();
-                    CANCoderAnglesRadians[i] = temporary.getValueAsDouble() * 2 * Math.PI;
+                    // rotations.refresh();
+                    CANCoderAnglesRadians[i] = rotations.getValueAsDouble() * 2 * Math.PI;
 
                     // TODO: We need to subtract the offset to the CANCoder angle.
                 }
