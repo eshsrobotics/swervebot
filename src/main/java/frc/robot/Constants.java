@@ -60,14 +60,16 @@ public final class Constants {
     public static final double SWERVE_DRIVE_MAX_TURNING_SPEED_RADIANS_PER_SECOND = 0.4;
 
     /**
-     * The horizontal distance between the left and the right swerve modules in meters.
+     * The horizontal distance between the left and the right swerve modules in meters. 
+     * This is measured from the center of the wheels.
      */
-    private static final double CHASSIS_WIDTH_METERS = 0.6; // TODO: Measure the real value for this number.
+    private static final double CHASSIS_WIDTH_METERS = 0.495;
 
     /**
      * The distance between the front and the back swerve modules in meters.
+     * This is measured from the center of the wheels.
      */
-    private static final double CHASSIS_LENGTH_METERS = 0.6; // TODO: Measure the real value for this number.
+    private static final double CHASSIS_LENGTH_METERS = 0.495; 
 
     /**
      * The positions of the wheels on the Chassis measured in meters.

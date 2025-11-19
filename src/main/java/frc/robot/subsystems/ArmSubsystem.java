@@ -123,7 +123,7 @@ public class ArmSubsystem extends SubsystemBase {
     */
     public void setArmSpeed(double speed) {
         armSpeed = speed;
-        System.out.println("Moving arm at " + (speed * 100) + "%");
+        //System.out.println("Moving arm at " + (speed * 100) + "%");
     }
 
     /**
