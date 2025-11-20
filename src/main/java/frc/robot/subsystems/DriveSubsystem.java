@@ -262,6 +262,7 @@ public class DriveSubsystem extends SubsystemBase {
                                               Constants.DriveConstants.SWERVE_MODULE_POSITIONS.get(BACK_LEFT),
                                               Constants.DriveConstants.SWERVE_MODULE_POSITIONS.get(FRONT_LEFT),
                                               Constants.DriveConstants.SWERVE_MODULE_POSITIONS.get(FRONT_RIGHT));
+                resetToForwardPosition();
                 break;
             }
         }
@@ -437,6 +438,7 @@ public class DriveSubsystem extends SubsystemBase {
      * or according to the current trajectory (during autonomous).
      */
     public void periodic() {
+        if (true) return;
         switch (driveType) {
             case DIFFERENTIAL_DRIVE:
                 // If the joystick is being moved, then the shuffleboard will be
