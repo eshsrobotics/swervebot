@@ -300,11 +300,11 @@ public class InputSubsystem extends SubsystemBase {
             try {
                 if (xboxController == null) {
                     xboxController = new XboxController(i);
-                    System.out.printf("controllerCheck: Found xbox controller on port %d.\n", i);
+                    //System.out.printf("controllerCheck: Found xbox controller on port %d.\n", i);
                     continue;
                 } else if (!xboxController.isConnected()) {
                     xboxController = null;
-                    System.out.printf("controllerCheck: Xbox controller is disconnected.\n");
+                    //System.out.printf("controllerCheck: Xbox controller is disconnected.\n");
                     continue;
                 }
             } catch (Exception e) {
@@ -400,7 +400,7 @@ public class InputSubsystem extends SubsystemBase {
                 !secondaryJoystick.isConnected() ? "secondary joystick on port %d was disconnected".formatted(secondaryJoystick.getPort()) :
                 "secondary joystick is connected on port %d".formatted(secondaryJoystick.getPort());
 
-            System.out.printf("%s: %s and %s; %s.\n", prefix, mainJoystickString, secondaryJoystickString, message);
+            //System.out.printf("%s: %s and %s; %s.\n", prefix, mainJoystickString, secondaryJoystickString, message);
         }
         return success;
     }

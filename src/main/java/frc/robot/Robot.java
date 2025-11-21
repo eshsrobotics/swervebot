@@ -82,7 +82,8 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
     }
-    m_robotContainer.stopAllMotors();
+    m_robotContainer.resetToForwardPosition();
+    //m_robotContainer.stopAllMotors();
   }
 
   /** This function is called periodically during operator control. */

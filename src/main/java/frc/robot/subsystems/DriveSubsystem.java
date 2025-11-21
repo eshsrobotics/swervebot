@@ -80,7 +80,7 @@ public class DriveSubsystem extends SubsystemBase {
     private double[] CAN_CODER_ANGLE_OFFSETS = { // These values are all in degrees.
         21.53,  // BACK_RIGHT
         74.62,  // BACK_LEFT
-        83.50,  // FRONT_LEFT
+        80.07,  // FRONT_LEFT
         111.80, // FRONT_RIGHT
     };
 
@@ -438,7 +438,6 @@ public class DriveSubsystem extends SubsystemBase {
      * or according to the current trajectory (during autonomous).
      */
     public void periodic() {
-        if (true) return;
         switch (driveType) {
             case DIFFERENTIAL_DRIVE:
                 // If the joystick is being moved, then the shuffleboard will be
@@ -513,8 +512,9 @@ public class DriveSubsystem extends SubsystemBase {
                     // automatically.
                     // rotations.refresh();
                     CANCoderAnglesRadians[i] = rotations.getValueAsDouble() * 2 * Math.PI;
-
-                    // TODO: We need to subtract the offset to the CANCoder angle.
+                    
+                    //Uche suggested this but it did not work ):
+                    //CANCoderAnglesRadians[i] -= Math.toRadians(CAN_CODER_ANGLE_OFFSETS[i]);
                 }
 
                 // TODO: Use the CANCoder's measurements for the PID
@@ -548,7 +548,13 @@ public class DriveSubsystem extends SubsystemBase {
                                                                          swerveModuleState.angle.getRadians());
 
                         // Set the output to the pivot motor.
+                        //if(i == 0) {
                         pivotMotor.set(power);
+                        if (DriverStation.isTeleopEnabled()) {
+                            System.out.println("i: " + i + " can: " + CANCoderAnglesRadians[i] + " angle: " + swerveModuleState.angle.getRadians());
+                            System.out.println("i: " + i + " power: " + power);
+                        }
+                        //}
                     }
 
                     // We are powering the drive motor without PID because we do

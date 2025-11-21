@@ -78,10 +78,15 @@ public class RobotContainer {
     // // cancelling on release.
     // m_driverController.b().whileTrue(m_exampleSubsystem.exampleMethodCommand());
   }
-
   public void stopAllMotors() {
     m_driveSubsystem.stopAllMotors();
   }
+
+public void resetToForwardPosition() {
+  m_driveSubsystem.resetToForwardPosition();
+}
+
+
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
