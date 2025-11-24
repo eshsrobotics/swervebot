@@ -401,18 +401,18 @@ public class DriveSubsystem extends SubsystemBase {
      * Drive the robot according to the given speeds.  This is meant to be used
      * during commands.
      *
-     * @param xAxis The speed at which the robot should move left or right. 1.0
-     * should be full speed to the right and -1.0 should be full speed to the
-     * left.
-     * @param yAxis The speed at which the robot should move forward or
+     * @param forwardBack The speed at which the robot should move forward or
      * backward. A value of 1.0 means full speed forward and -1.0 means full
      * speed backward.
+     * @param leftRight The speed at which the robot should move left or right. 1.0
+     * should be full speed to the right and -1.0 should be full speed to the
+     * left.
      * @param turn The speed at which the robot should turn (1.0 is full speed
      * clockwise and -1.0 is full speed counterclockwise.
      */
-    public void drive(double xAxis, double yAxis, double turn) {
-        double clampedForwardBack = MathUtil.clamp(xAxis, -1.0, 1.0);
-        double clampedLeftRight = MathUtil.clamp(yAxis, -1.0, 1.0); // 
+    public void drive(double forwardBack, double leftRight, double turn) {
+        double clampedForwardBack = MathUtil.clamp(forwardBack, -1.0, 1.0);
+        double clampedLeftRight = MathUtil.clamp(leftRight, -1.0, 1.0); // 
         double clampedTurn = MathUtil.clamp(turn, -1.0, 1.0);
 
         // Convert the human input into a ChassisSpeeds object giving us
@@ -529,14 +529,15 @@ public class DriveSubsystem extends SubsystemBase {
                     var pivotMotorPIDController = pivotMotorPIDControllers.get(i);
 
                     // Get the swerve module state.
-                    var swerveModuleState = goalStates.get(i);
+                    var goalState = goalStates.get(i);
 
                     // Get the pivot motor.
                     var pivotMotor = swervePivotMotors.get(i);
 
                     // // Set the PID controller's setpoint to the angle of the
                     // swerve module state.
-                    pivotMotorPIDController.setSetpoint(swerveModuleState.angle.getRadians());
+                    var setpoint = goalState.angle.getRadians();
+                    pivotMotorPIDController.setSetpoint(setpoint);
 
                     if (pivotMotorPIDController.atSetpoint()) {
                         // If the PID controller is at the setpoint, then we
@@ -545,16 +546,21 @@ public class DriveSubsystem extends SubsystemBase {
                     } else {
                         // Get the output from the PID controller.
                         double power = pivotMotorPIDController.calculate(CANCoderAnglesRadians[i],
-                                                                         swerveModuleState.angle.getRadians());
+                                                                         goalState.angle.getRadians());
 
                         // Set the output to the pivot motor.
                         //if(i == 0) {
                         pivotMotor.set(power);
                         if (DriverStation.isTeleopEnabled()) {
-                            System.out.println("i: " + i + " can: " + CANCoderAnglesRadians[i] + " angle: " + swerveModuleState.angle.getRadians());
-                            System.out.println("i: " + i + " power: " + power);
+                            String[] labels = new String[] {
+                                "BR error",
+                                "BL error",
+                                "FL error",
+                                "FR error",
+                            };
+                            var error = setpoint - CANCoderAnglesRadians[i];
+                            SmartDashboard.putNumber(labels[i], error);
                         }
-                        //}
                     }
 
                     // We are powering the drive motor without PID because we do
@@ -567,7 +573,7 @@ public class DriveSubsystem extends SubsystemBase {
                      * converting the swerveModuleState speed into meters per
                      * second.
                      */
-                    final double speed = swerveModuleState.speedMetersPerSecond / DriveConstants.SWERVE_DRIVE_MAX_DRIVING_SPEED_METERS_PER_SECOND;
+                    final double speed = goalState.speedMetersPerSecond / DriveConstants.SWERVE_DRIVE_MAX_DRIVING_SPEED_METERS_PER_SECOND;
 
                     // Deadzoning the driving speed to save power.
                     if (Math.abs(speed) < DriveConstants.SWERVE_DRIVE_DEADZONE) {
