@@ -252,11 +252,11 @@ public class DriveSubsystem extends SubsystemBase {
                 // swerve module state.
                 for (int i = 0; i < pivotMotorPIDControllers.size(); i++) {
                     pivotMotorPIDControllers.get(i).setTolerance(Constants.DriveConstants.PIVOT_ANGLE_TOLERANCE_RADIANS);
-                    pivotMotorPIDControllers.get(i).enableContinuousInput(-Math.PI, Math.PI);
+                    pivotMotorPIDControllers.get(i).enableContinuousInput(0, 2*Math.PI);
                 }
 
                 // We only need one SwerveDriveKinematics object for our forward and inverse kinematics
-                // caluclations, and there are concerns that it may be expensive to make more than one.
+                // calculations, and there are concerns that it may be expensive to make more than one.
                 this.kinematics =
                     new SwerveDriveKinematics(Constants.DriveConstants.SWERVE_MODULE_POSITIONS.get(BACK_RIGHT),
                                               Constants.DriveConstants.SWERVE_MODULE_POSITIONS.get(BACK_LEFT),
