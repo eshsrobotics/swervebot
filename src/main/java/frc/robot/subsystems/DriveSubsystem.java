@@ -85,6 +85,17 @@ public class DriveSubsystem extends SubsystemBase {
     };
 
     /**
+     * Allows us to ensure all motors rotate in the correct direction when commanded
+     * (FL is inverted as it was rotating opposite the direction assigned to it)
+     */
+    private boolean[] isMotorReversed = { 
+        false, // BACK_RIGHT
+        false, // BACK_LEFT
+        true,  // FRONT_LEFT (as of 12/14/25)
+        false, // FRONT_RIGHT
+    };
+
+    /**
      * PID controllers. We'll use four PID Controllers with the same constants
      * for each pivot motor. 
      *
@@ -224,14 +235,28 @@ public class DriveSubsystem extends SubsystemBase {
 
                 // Initialize the pivot motors in a similar manner to how we
                 // initialized them for the 2020bot.
-                SparkMaxConfig config = new SparkMaxConfig();
-                config.idleMode(IdleMode.kBrake);
-                //TODO: This belongs in drive motor configuration for getting
-                //the drive speed in meters per second.
-                //config.encoder.velocityConversionFactor(getConversionFactor());
-                swervePivotMotors.forEach(motor -> {
+                SparkMaxConfig commonConfig = new SparkMaxConfig();
+                commonConfig.idleMode(IdleMode.kBrake);
+                
+                // Apply this config if we want a motor to be inverted
+                var invertedConfig = commonConfig.inverted(true);
+
+                // For the motors observed to be operating incorrectly (i.e,
+                // going clockwise when instructed to go counterclockwise), this
+                // loop will apply an inversion to them. The motors operating
+                // correctly will not be changed. 
+                for (int i = 0; i < 4; i++) {
+                    var motor = swervePivotMotors.get(i);
+                    var config = new SparkMaxConfig();
+                    config.apply(commonConfig);
+                    if (isMotorReversed[i] == true) {
+                        config.apply(invertedConfig);
+                    }
+                    //TODO: This belongs in drive motor configuration for getting
+                    //the drive speed in meters per second.
+                    //config.encoder.velocityConversionFactor(getConversionFactor());
                     motor.configure(config, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
-                });
+                }
 
                 // Initialize CANcoders
                 swerveCANCODER = Arrays.asList(new CANcoder[] {
