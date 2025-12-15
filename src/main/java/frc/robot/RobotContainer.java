@@ -14,6 +14,9 @@ import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.InputSubsystem;
+
+import java.lang.reflect.Method;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -67,26 +70,30 @@ public class RobotContainer {
   private void configureBindings() {
     // // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
     // new Trigger(m_exampleSubsystem::exampleCondition)
-    //     .onTrue(new ExampleCommand(m_exampleSubsystem));
+    // .onTrue(new ExampleCommand(m_exampleSubsystem));
 
     // // This command will be used only if our subsystem works.
     // new Trigger(m_inputSubsystem::isCoralIntakeActivated)
-    //     .onTrue(TeleopCommands.outtakeCommand(m_inputSubsystem, m_armSubsystem));
+    // .onTrue(TeleopCommands.outtakeCommand(m_inputSubsystem, m_armSubsystem));
 
     // // Schedule `exampleMethodCommand` when the Xbox controller's B button is
     // // pressed,
     // // cancelling on release.
     // m_driverController.b().whileTrue(m_exampleSubsystem.exampleMethodCommand());
   }
+
   public void stopAllMotors() {
     m_driveSubsystem.stopAllMotors();
   }
 
-public void resetToForwardPosition() {
-  m_driveSubsystem.resetToForwardPosition();
-}
+  public void resetToForwardPosition() {
+    m_driveSubsystem.resetToForwardPosition();
+  }
 
-
+  public Command foo() {
+    // We need to use getForwardBack, getLeftRight and getTurn from the Input
+    // Subsystem to call DriveSubsystem.drive
+  }
 
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
