@@ -3,6 +3,8 @@ package frc.robot.subsystems;
 import java.util.Arrays;
 import java.util.List;
 
+import org.opencv.core.Mat;
+
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.PersistMode;
@@ -579,12 +581,13 @@ public class DriveSubsystem extends SubsystemBase {
                         // don't need to do anything.
                         pivotMotor.stopMotor();
                     } else {
+                        double measurement = CANCoderAnglesRadians[i];
+                        measurement = isMotorReversed[i] ? 2 * Math.PI - measurement : measurement; 
+
                         // Get the output from the PID controller.
-                        double power = pivotMotorPIDController.calculate(CANCoderAnglesRadians[i],
+                        double power = pivotMotorPIDController.calculate(measurement,
                                                                          goalState.angle.getRadians());
 
-                        if (isMotorReversed[i])
-                            power *= -1.0;
                         // Set the output to the pivot motor.
                         //if(i == 0) {
                         pivotMotor.set(power);
