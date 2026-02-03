@@ -320,7 +320,7 @@ public class DriveSubsystem extends SubsystemBase {
      * are clockwise relative to the foward position.
      * @param angleInDegrees This is the desired rotation relative to the forward position of the swerve modules.
      */
-    public void resetToPosition (double angleInDegrees) {
+    public void resetToPosition (double angleInDegrees) { 
         double angleInRadians = Math.toRadians(angleInDegrees);
 
         final int BACK_RIGHT = DriveConstants.WheelIndex.BACK_RIGHT.label;
