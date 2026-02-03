@@ -286,7 +286,8 @@ public class DriveSubsystem extends SubsystemBase {
                                               Constants.DriveConstants.SWERVE_MODULE_POSITIONS.get(BACK_LEFT),
                                               Constants.DriveConstants.SWERVE_MODULE_POSITIONS.get(FRONT_LEFT),
                                               Constants.DriveConstants.SWERVE_MODULE_POSITIONS.get(FRONT_RIGHT));
-                resetToForwardPosition();
+                // We can change the parameter here to test various angles of the modules.
+                resetToPosition(0);
                 break;
             }
         }
@@ -308,16 +309,30 @@ public class DriveSubsystem extends SubsystemBase {
      * based off of those origin angles. It also works well as a testing resource.
      */
     public void resetToForwardPosition() {
+        resetToPosition(0);
+    }
+
+    /**
+     * Resets the pivot motors to the desired angle based on CANCoder offsets, where the base desired
+     * angle (when angleInDegrees = 0) is when the swerve modules are facing foward. 
+     * 
+     * Negative angles are counterclockwise relative to the forward position, and positive angles
+     * are clockwise relative to the foward position.
+     * @param angleInDegrees This is the desired rotation relative to the forward position of the swerve modules.
+     */
+    public void resetToPosition (double angleInDegrees) {
+        double angleInRadians = Math.toRadians(angleInDegrees);
+
         final int BACK_RIGHT = DriveConstants.WheelIndex.BACK_RIGHT.label;
         final int BACK_LEFT = DriveConstants.WheelIndex.BACK_LEFT.label;
         final int FRONT_LEFT = DriveConstants.WheelIndex.FRONT_LEFT.label;
         final int FRONT_RIGHT = DriveConstants.WheelIndex.FRONT_RIGHT.label;
 
         SwerveModuleState[] swerveModuleStates = new SwerveModuleState[] {
-            new SwerveModuleState(0.0, new Rotation2d(Math.toRadians(CAN_CODER_ANGLE_OFFSETS[BACK_RIGHT]))),
-            new SwerveModuleState(0.0, new Rotation2d(Math.toRadians(CAN_CODER_ANGLE_OFFSETS[BACK_LEFT]))),
-            new SwerveModuleState(0.0, new Rotation2d(Math.toRadians(CAN_CODER_ANGLE_OFFSETS[FRONT_LEFT]))),
-            new SwerveModuleState(0.0, new Rotation2d(Math.toRadians(CAN_CODER_ANGLE_OFFSETS[FRONT_RIGHT])))};
+            new SwerveModuleState(0.0, new Rotation2d(Math.toRadians(CAN_CODER_ANGLE_OFFSETS[BACK_RIGHT]) + angleInRadians)),
+            new SwerveModuleState(0.0, new Rotation2d(Math.toRadians(CAN_CODER_ANGLE_OFFSETS[BACK_LEFT]) + angleInRadians)),
+            new SwerveModuleState(0.0, new Rotation2d(Math.toRadians(CAN_CODER_ANGLE_OFFSETS[FRONT_LEFT]) + angleInRadians)),
+            new SwerveModuleState(0.0, new Rotation2d(Math.toRadians(CAN_CODER_ANGLE_OFFSETS[FRONT_RIGHT]) + angleInRadians))};
 
         goalStates = Arrays.asList(swerveModuleStates);
     }
