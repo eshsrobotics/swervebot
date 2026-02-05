@@ -410,11 +410,11 @@ public class InputSubsystem extends SubsystemBase {
      */
     @Override
     public void initSendable(SendableBuilder builder) {
+        super.initSendable(builder);
         builder.setSmartDashboardType("InputSubsystem");
         builder.addDoubleProperty("Turn", this::getTurn, null);
         builder.addDoubleProperty("ForwardBack", this::getForwardBack, null);
         builder.addDoubleProperty("LeftRight", this::getLeftRight, null);
-        // super.initSendable(builder);
     }
 
     // TODO We need to call the controller check every few seconds during
