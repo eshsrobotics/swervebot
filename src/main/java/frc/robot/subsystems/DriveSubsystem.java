@@ -80,10 +80,10 @@ public class DriveSubsystem extends SubsystemBase {
      * (angle = zero degrees.)
      */
     private double[] CAN_CODER_ANGLE_OFFSETS = { // These values are all in degrees.
-        18.37,  // BACK_RIGHT
-        70.40,  // BACK_LEFT
-        66.75,  // FRONT_LEFT
-        114.35, // FRONT_RIGHT
+        161,  //18.37 BACK_RIGHT
+        108,  //70.40 BACK_LEFT
+        108,  //66.75 FRONT_LEFT
+        65, //114.35 FRONT_RIGHT
     };
 
     /**
@@ -554,7 +554,6 @@ public class DriveSubsystem extends SubsystemBase {
                 break;
             case SWERVE_DRIVE:
                 // Our primary input for driving is the goalStates[] that we set in the drive function.
-
                 // Grab CANCoder measurements.
                 // Our PID setpoints come from the SwerveModuleStates.
                 double[] CANCoderAnglesRadians = new double[4];
@@ -595,6 +594,7 @@ public class DriveSubsystem extends SubsystemBase {
                         // If the PID controller is at the setpoint, then we
                         // don't need to do anything.
                         pivotMotor.stopMotor();
+                        System.out.println("Setpoint reached.");
                     } else {
                         double measurement = CANCoderAnglesRadians[i];
                         measurement = isMotorReversed[i] ? 2 * Math.PI - measurement : measurement; 
@@ -616,6 +616,18 @@ public class DriveSubsystem extends SubsystemBase {
                             var error = setpoint - CANCoderAnglesRadians[i];
                             SmartDashboard.putNumber(labels[i], error);
                         }
+
+                        if (DriverStation.isTeleopEnabled()) {
+                            String[] labels = new String[] {
+                                "BR PID error",
+                                "BL PID error",
+                                "FL PID error",
+                                "FR PID error",
+                            };
+                            var PIDerror = pivotMotorPIDController.getError();
+                            SmartDashboard.putNumber(labels[i], PIDerror);
+                        }
+
                         String[] labels = new String[] {
                             "BR power",
                             "BL power",
