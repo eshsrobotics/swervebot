@@ -60,7 +60,7 @@ public class RobotContainer {
     if (teleopCommand == null) {
       teleopCommand = getTeleopCommand();
     }
-    teleopCommand.schedule();
+    //teleopCommand.schedule();
   }
 
   /**

@@ -80,22 +80,30 @@ public class DriveSubsystem extends SubsystemBase {
      * (angle = zero degrees.)
      */
     private double[] CAN_CODER_ANGLE_OFFSETS = { // These values are all in degrees.
-        161,  //18.37 BACK_RIGHT
-        108,  //70.40 BACK_LEFT
-        108,  //66.75 FRONT_LEFT
-        65, //114.35 FRONT_RIGHT
+        -22.8,  // BACK_RIGHT
+        108,  // BACK_LEFT
+        108,  // FRONT_LEFT
+        -114.4, // FRONT_RIGHT
     };
 
     /**
      * Allows us to ensure all motors rotate in the correct direction when commanded
      * (FL is inverted as it was rotating opposite the direction assigned to it)
      */
-    private boolean[] isMotorReversed = { 
+    private boolean[] isPivotReversed = { 
         true, // BACK_RIGHT
         true, // BACK_LEFT
         true,  // FRONT_LEFT (as of 12/14/25)
         true, // FRONT_RIGHT
     };
+
+    private boolean[] isDriveReversed = { 
+        false, // BACK_RIGHT
+        true, // BACK_LEFT
+        false,  // FRONT_LEFT (as of 12/14/25)
+        false, // FRONT_RIGHT
+    };
+    
 
     /**
      * PID controllers. We'll use four PID Controllers with the same constants
@@ -156,6 +164,9 @@ public class DriveSubsystem extends SubsystemBase {
      * Used only for the differential drive.
      */
     private double currentTurn;
+
+    private boolean testDrive = false;
+    private boolean testPivot = false;
 
     /**
      * Intended to be owned by the RobotContainer and to be used by
@@ -367,6 +378,8 @@ public class DriveSubsystem extends SubsystemBase {
     public void initSendable(SendableBuilder builder) {
         super.initSendable(builder);
         System.out.printf("initalizing shuffleboard");
+        builder.addBooleanProperty("testDrive", () -> testDrive, (value) -> { testDrive = value; });
+        builder.addBooleanProperty("testPivot", () -> testPivot, (value) -> { testPivot = value; });
         //Line 355 is defining a lambda function
         TriConsumer<List<SparkMax>, String, WheelIndex> addMotorHelper = (motors, name, index) -> {
             builder.addDoubleProperty(name,
@@ -574,7 +587,6 @@ public class DriveSubsystem extends SubsystemBase {
                 // Later, we should InItsendable to send our pivot angles to
                 // the suffleboard for easier debugging.
 
-                //
                 for (int i = 0; i < 4; i++) {
                     // Get the pivot motor's PID controller.
                     var pivotMotorPIDController = pivotMotorPIDControllers.get(i);
@@ -590,14 +602,14 @@ public class DriveSubsystem extends SubsystemBase {
                     var setpoint = goalState.angle.getRadians();
                     pivotMotorPIDController.setSetpoint(setpoint);
 
-                    if (pivotMotorPIDController.atSetpoint()) {
+                    if (!testPivot && pivotMotorPIDController.atSetpoint()) { 
                         // If the PID controller is at the setpoint, then we
                         // don't need to do anything.
                         pivotMotor.stopMotor();
                         System.out.println("Setpoint reached.");
                     } else {
                         double measurement = CANCoderAnglesRadians[i];
-                        measurement = isMotorReversed[i] ? 2 * Math.PI - measurement : measurement; 
+                        measurement = isPivotReversed[i] ? 2 * Math.PI - measurement : measurement; 
 
                         // Get the output from the PID controller.
                         double power = pivotMotorPIDController.calculate(measurement,
@@ -605,6 +617,10 @@ public class DriveSubsystem extends SubsystemBase {
 
                         // Set the output to the pivot motor.
                         //if(i == 0) {
+                        if (testPivot) {
+                            power = isPivotReversed[i] ? -0.05 : 0.05;
+                        }
+                        
                         pivotMotor.set(power);
                         if (DriverStation.isTeleopEnabled()) {
                             String[] labels = new String[] {
@@ -655,8 +671,11 @@ public class DriveSubsystem extends SubsystemBase {
                      * converting the swerveModuleState speed into meters per
                      * second.
                      */
-                    final double speed = goalState.speedMetersPerSecond / DriveConstants.SWERVE_DRIVE_MAX_DRIVING_SPEED_METERS_PER_SECOND;
-
+                    double speed = goalState.speedMetersPerSecond / DriveConstants.SWERVE_DRIVE_MAX_DRIVING_SPEED_METERS_PER_SECOND;
+                    if (testDrive) {
+                        speed = 0.05;
+                    }
+                    speed = isDriveReversed[i] ? speed * -1 : speed;
                     // Deadzoning the driving speed to save power.
                     if (Math.abs(speed) < DriveConstants.SWERVE_DRIVE_DEADZONE) {
                         driveMotor.stopMotor();
