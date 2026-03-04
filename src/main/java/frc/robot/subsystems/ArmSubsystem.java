@@ -95,7 +95,7 @@ public class ArmSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         if (DriverStation.isTeleopEnabled()) {
-            this.setArmSpeed(input.getArmMovement());
+            //this.setArmSpeed(input.getArmMovement());
             this.spinOuttake(input.isCoralIntakeActivated());
         }
         if (isOuttaking) {

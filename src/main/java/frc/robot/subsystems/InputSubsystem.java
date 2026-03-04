@@ -229,38 +229,40 @@ public class InputSubsystem extends SubsystemBase {
     }
 
     /**
-     * This is a separate method of controlling the lift of the ArmSubsystem.
-     * It will move the lift at a constant speed as long as the player is holding down the desired movement button.
-     * The speed of the lift is dependent on the constant LIFT_SPEED in Constants.java.
+     * Detects when the X or Y button is being pressed, and returns the speed
+     * that the lower intake should be in because of that.
+     * 
+     * 0 -> off
+     * 1 -> 50% speed (intake)
+     * 2 -> 100% speed (launch)
+     * @return
      */
-    public double getArmMovement() {
-        if(xboxController != null && xboxController.isConnected() == true) {
-            if (xboxController.getYButton()) {
-                return Constants.ArmConstants.LIFT_SPEED * -1;
-            } else if (xboxController.getAButton()) {
-                return Constants.ArmConstants.LIFT_SPEED;
-            } else {
-                return 0;
-            }
+    public int getLowerIntakeButton() {
+        if(xboxController != null && xboxController.isConnected() == true) {      
+            if (xboxController.getLeftBumperButton())
+                return 1;
+            return xboxController.getRightBumperButton() ? 2 : 0;
         }
-
-        if(mainJoystick != null && mainJoystick.isConnected() && secondaryJoystick != null && secondaryJoystick.isConnected()) {
-            if(secondaryJoystick.getRawButtonPressed(5)) {
-                return Constants.ArmConstants.LIFT_SPEED;
-            } else if(secondaryJoystick.getRawButtonPressed(3)) {
-                return Constants.ArmConstants.LIFT_SPEED * -1;
-            }
-        } else if(mainJoystick != null && mainJoystick.isConnected()) {
-            if(mainJoystick.getRawButtonPressed(5)) {
-                return Constants.ArmConstants.LIFT_SPEED;
-            } else if(mainJoystick.getRawButtonPressed(3)) {
-                return Constants.ArmConstants.LIFT_SPEED * -1;
-            }
-        }
-
         return 0;
     }
 
+    /**
+     * Detects when the left/right bumper is being pressed, and returns the state
+     * that the threshold intake should be in because of that.
+     * 
+     * 0 -> off
+     * 1 -> intake (right bumper)
+     * 2 -> release (left bumper)
+     * @return
+     */
+    public int getThresholdIntakeButton() {
+        if(xboxController != null && xboxController.isConnected() == true) {      
+            if (xboxController.getXButton())
+                return 1;
+            return xboxController.getYButton() ? 2 : 0;
+        }
+        return 0;
+    }
 
     /**
      * Returns whether or not the coral flywheels should be moving based on whether or not the player

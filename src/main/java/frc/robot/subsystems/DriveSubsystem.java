@@ -3,6 +3,8 @@ package frc.robot.subsystems;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.xml.crypto.URIReference;
+
 import org.opencv.core.Mat;
 
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -403,7 +405,9 @@ public class DriveSubsystem extends SubsystemBase {
         switch (driveType) {
             case DIFFERENTIAL_DRIVE:
 
-                // Add the differential drive motors to the shuffleboard.
+            builder.addDoubleProperty("currentYAxis", () -> currentYAxis, null);
+            builder.addDoubleProperty("currentTurn", () -> currentTurn, null);
+            // Add the differential drive motors to the shuffleboard.
                 addMotorHelper.accept(differentialDriveMotors, "BR Motor", WheelIndex.BACK_RIGHT);
                 addMotorHelper.accept(differentialDriveMotors, "BL Motor", WheelIndex.BACK_LEFT);
                 addMotorHelper.accept(differentialDriveMotors, "FL Motor", WheelIndex.FRONT_LEFT);
@@ -473,9 +477,9 @@ public class DriveSubsystem extends SubsystemBase {
      * clockwise and -1.0 is full speed counterclockwise.
      */
     public void drive(double forwardBack, double leftRight, double turn) {
-        clampedForwardBack = MathUtil.clamp(forwardBack, -1.0, 1.0);
-        clampedLeftRight = MathUtil.clamp(leftRight, -1.0, 1.0); // 
-        clampedTurn = MathUtil.clamp(turn, -1.0, 1.0);
+        clampedForwardBack = MathUtil.clamp(forwardBack, -0.5, 0.5);
+        clampedLeftRight = MathUtil.clamp(leftRight, -0.5, 0.5); // 
+        clampedTurn = MathUtil.clamp(turn, -0.5, 0.5);
 
         if (driveType == DriveType.SWERVE_DRIVE) {
                 
@@ -512,7 +516,7 @@ public class DriveSubsystem extends SubsystemBase {
                 if (DriverStation.isTeleopEnabled()) {
                     if (input.getForwardBack() != 0 || input.getTurn() != 0) {
                         System.out.println(input.getForwardBack());
-                        this.drive(input.getLeftRight(), input.getForwardBack(), input.getTurn());
+                        this.drive(input.getForwardBack(), input.getLeftRight(), input.getTurn());
                         canShuffleBoardActuate = false;
                     } else if (!canShuffleBoardActuate) {
                         this.drive(0, 0, 0);
@@ -535,7 +539,7 @@ public class DriveSubsystem extends SubsystemBase {
                 // would override any values inputted into the shuffleboard.
 
                 if (!DriverStation.isTestEnabled()) {
-                    if (Math.abs(clampedLeftRight) < Constants.MathConstants.EPSILON &&
+                    if (!testDrive && Math.abs(clampedLeftRight) < Constants.MathConstants.EPSILON &&
                         Math.abs(clampedTurn) < Constants.MathConstants.EPSILON) {
                         differentialDrive.arcadeDrive(0.0, 0.0);
                         followDifferentialDrive.arcadeDrive(0.0, 0.0);
@@ -552,6 +556,11 @@ public class DriveSubsystem extends SubsystemBase {
                         double diffTurn = clampedTurn - currentTurn;
                         diffTurn = MathUtil.clamp(diffTurn, -0.25, 0.25);
                         currentTurn += diffTurn;
+
+                        if (testDrive) {
+                            currentYAxis = 0.4;
+                            currentTurn = -0.2;
+                        }
 
                         differentialDrive.arcadeDrive(currentYAxis, currentTurn);
                         followDifferentialDrive.arcadeDrive(currentYAxis, currentTurn);

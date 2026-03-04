@@ -14,6 +14,7 @@ import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ExampleSubsystem;
 import frc.robot.subsystems.InputSubsystem;
+import frc.robot.subsystems.IntakeSubsystem;
 
 import java.lang.reflect.Method;
 
@@ -36,8 +37,9 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
   private final InputSubsystem m_inputSubsystem = new InputSubsystem();
-  private final DriveType driveType = DriveType.SWERVE_DRIVE;
+  private final DriveType driveType = DriveType.DIFFERENTIAL_DRIVE;
   private final DriveSubsystem m_driveSubsystem = new DriveSubsystem(m_inputSubsystem, driveType);
+  private final IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem(m_inputSubsystem);
   //private final ArmSubsystem m_armSubsystem = new ArmSubsystem(m_inputSubsystem);
   private final ArmSubsystem m_armSubsystem = null;
 
